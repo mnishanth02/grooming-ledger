@@ -353,10 +353,10 @@ _(Textual Descriptions - Actual wireframes would be visual)_
 **5.1. Platform and Technology:**
 
 - **Platform:** Web-based application, accessible via modern web browsers (Chrome, Firefox, Safari, Edge).
-- **Technology Stack (Example - to be further defined by development team):**
-  - **Frontend:** React, Next.js.
+- **Technology Stack:**
+  - **Frontend:** React, Next.js, shadcn/ui, Typescript.
   - **Backend:** for MVP we go with Next.js as a Backend (Server action)
-  - **Database:** PostgreSQL () Neon DB
+  - **Database:** PostgreSQL (Neon DB)
   - **AI Search Integration:** Integration with a suitable AI search service or library (e.g., Elasticsearch with relevant NLP plugins, or cloud-based AI search services).
 - **Hosting:** Vercel or Azure or Self-Hosting.
 

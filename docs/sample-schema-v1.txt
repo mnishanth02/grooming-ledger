@@ -1,0 +1,188 @@
+import {
+    pgTable,
+    serial,
+    text,
+    varchar,
+    timestamp,
+    integer,
+    date,
+    boolean,
+    decimal,
+    pgEnum,
+    index,
+    primaryKey,
+    foreignKey,
+} from 'drizzle-orm/pg-core';
+
+// Enums for better type safety and database constraints
+export const userRoleEnum = pgEnum('user_role', ['pm', 'coordinator', 'assessor', 'groomer', 'candidate']);
+export const groomingStatusEnum = pgEnum('grooming_status', ['not_started', 'grooming', 'pre_assessment', 'post_assessment', 'client_interview', 'completed', 'terminated']);
+export const assessmentTypeEnum = pgEnum('assessment_type', ['pre', 'post']);
+export const assessmentOutcomeEnum = pgEnum('assessment_outcome', ['positive', 'negative', 'pending']);
+export const groomingCycleStatusEnum = pgEnum('grooming_cycle_status', ['active', 'completed', 'cancelled']);
+export const assessmentScheduleStatusEnum = pgEnum('assessment_schedule_status', ['scheduled', 'confirmed', 'cancelled', 'completed']); // Keeping for assessments.status, but removed schedules table
+export const groomingTopicStatusEnum = pgEnum('grooming_topic_status', ['not_started', 'grooming', 'groomer_assessed', 'pre_assessment_done', 'post_assessment_done']);
+export const userStatusEnum = pgEnum('user_status', ['active', 'inactive', 'pending']);
+
+// 1. Users Table (`users`)
+export const users = pgTable('users', {
+    id: serial('id').primaryKey(),
+    role: userRoleEnum('role').notNull(),
+    firstName: varchar('first_name', { length: 255 }).notNull(),
+    lastName: varchar('last_name', { length: 255 }).notNull(),
+    email: varchar('email', { length: 255 }).notNull().unique(),
+    employeeId: varchar('employee_id', { length: 50 }).unique(), // Optional but unique if provided
+    passwordHash: text('password_hash'), // Store hashed password if managing auth internally, otherwise can be nullable and Auth.js handles it.
+    contactNumber: varchar('contact_number', { length: 20 }),
+    status: userStatusEnum('status').default('pending').notNull(), // 'active', 'inactive', 'pending' (e.g., after registration)
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export type User = typeof users.$inferSelect;
+export type UserInsert = typeof users.$inferInsert;
+
+// 2. Candidates Table (`candidates`)
+export const candidates = pgTable('candidates', 'candidate_pk', {
+    userId: integer('user_id')
+        .primaryKey()
+        .references(() => users.id, { onDelete: 'cascade' }), // PK and FK to users table, cascade delete if user is deleted
+    joiningDate: date('joining_date'),
+    totalGroomingAttempts: integer('total_grooming_attempts').default(0).notNull(),
+    clientInterviewAttempts: integer('client_interview_attempts').default(0).notNull(),
+    currentGroomingStatus: groomingStatusEnum('current_grooming_status').default('not_started').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        userIdIdx: index('candidate_user_id_idx').on(table.userId), // Index for userId for faster lookups
+    };
+});
+
+export type Candidate = typeof candidates.$inferSelect;
+export type CandidateInsert = typeof candidates.$inferInsert;
+
+// 3. Grooming Cycles Table (`grooming_cycles`)
+export const groomingCycles = pgTable('grooming_cycles', {
+    id: serial('id').primaryKey(),
+    candidateId: integer('candidate_id')
+        .notNull()
+        .references(() => candidates.userId, { onDelete: 'cascade' }), // FK to candidates table, cascade delete if candidate is deleted
+    assessorId: integer('assessor_id')
+        .notNull()
+        .references(() => users.id, { onDelete: 'set null' }), // FK to users table (Assessor role), set null if assessor is deleted
+    groomerId: integer('groomer_id')
+        .notNull()
+        .references(() => users.id, { onDelete: 'set null' }), // FK to users table (Groomer role), set null if groomer is deleted
+    startDate: date('start_date').notNull(),
+    endDate: date('end_date').notNull(),
+    status: groomingCycleStatusEnum('status').default('active').notNull(), // 'active', 'completed', 'cancelled'
+    outcome: assessmentOutcomeEnum('outcome').default('pending'), // 'positive', 'negative', 'pending' - overall outcome of the cycle
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        candidateIdIdx: index('grooming_cycles_candidate_id_idx').on(table.candidateId), // Index for candidateId
+        assessorIdIdx: index('grooming_cycles_assessor_id_idx').on(table.assessorId), // Index for assessorId
+        groomerIdIdx: index('grooming_cycles_groomer_id_idx').on(table.groomerId), // Index for groomerId
+    };
+});
+
+export type GroomingCycle = typeof groomingCycles.$inferSelect;
+export type GroomingCycleInsert = typeof groomingCycles.$inferInsert;
+
+// 4. Grooming Topics Table (`grooming_topics`)
+export const groomingTopics = pgTable('grooming_topics', {
+    id: serial('id').primaryKey(),
+    topicName: varchar('topic_name', { length: 255 }).notNull().unique(),
+    description: text('description'),
+    category: varchar('category', { length: 255 }),
+    weightage: decimal('weightage', { precision: 5, scale: 2 }), // e.g., 40% = 40.00
+    parentTopicId: integer('parent_topic_id').references(() => groomingTopics.id, { onDelete: 'set null' }), // Self-reference for subtopics, set null if parent is deleted
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        topicNameIdx: index('grooming_topics_topic_name_idx').on(table.topicName), // Index for topic name
+        parentTopicIdIdx: index('grooming_topics_parent_topic_id_idx').on(table.parentTopicId), // Index for parent topic id
+    };
+});
+
+export type GroomingTopic = typeof groomingTopics.$inferSelect;
+export type GroomingTopicInsert = typeof groomingTopics.$inferInsert;
+
+// 5. Grooming Cycle Topics Table (`grooming_cycle_topics`)
+export const groomingCycleTopics = pgTable('grooming_cycle_topics', {
+    id: serial('id').primaryKey(),
+    groomingCycleId: integer('grooming_cycle_id')
+        .notNull()
+        .references(() => groomingCycles.id, { onDelete: 'cascade' }), // FK to grooming_cycles, cascade delete if cycle is deleted
+    topicId: integer('topic_id')
+        .notNull()
+        .references(() => groomingTopics.id, { onDelete: 'cascade' }), // FK to grooming_topics, cascade delete if topic is deleted
+    status: groomingTopicStatusEnum('status').default('not_started').notNull(), // Status within this grooming cycle
+    groomerComments: text('groomer_comments'),
+    candidateCompletionStatus: boolean('candidate_completion_status').default(false).notNull(), // Candidate marks topic as complete
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        groomingCycleTopicUnique: primaryKey({ columns: [table.groomingCycleId, table.topicId] }), // Unique combination of cycle and topic
+        groomingCycleIdIdx: index('grooming_cycle_topics_grooming_cycle_id_idx').on(table.groomingCycleId), // Index for grooming cycle id
+        topicIdIdx: index('grooming_cycle_topics_topic_id_idx').on(table.topicId), // Index for topic id
+    };
+});
+
+export type GroomingCycleTopic = typeof groomingCycleTopics.$inferSelect;
+export type GroomingCycleTopicInsert = typeof groomingCycleTopics.$inferInsert;
+
+// 6. Assessments Table (`assessments`)
+export const assessments = pgTable('assessments', {
+    id: serial('id').primaryKey(),
+    groomingCycleId: integer('grooming_cycle_id')
+        .notNull()
+        .references(() => groomingCycles.id, { onDelete: 'cascade' }), // FK to grooming_cycles, cascade delete if cycle is deleted
+    assessorId: integer('assessor_id')
+        .notNull()
+        .references(() => users.id, { onDelete: 'set null' }), // FK to users (Assessor), set null if assessor is deleted
+    assessmentType: assessmentTypeEnum('assessment_type').notNull(), // 'pre', 'post'
+    assessmentDate: timestamp('assessment_date').notNull(),
+    overallRating: integer('overall_rating'), // 1-5 rating
+    overallComments: text('overall_comments'),
+    status: assessmentScheduleStatusEnum('status').default('scheduled').notNull(), // 'scheduled', 'confirmed', 'cancelled', 'completed' - Using schedule status for assessment status
+    outcome: assessmentOutcomeEnum('outcome').default('pending'), // 'positive', 'negative', 'pending'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        groomingCycleIdIdx: index('assessments_grooming_cycle_id_idx').on(table.groomingCycleId), // Index for grooming cycle id
+        assessorIdIdx: index('assessments_assessor_id_idx').on(table.assessorId), // Index for assessor id
+    };
+});
+
+export type Assessment = typeof assessments.$inferSelect;
+export type AssessmentInsert = typeof assessments.$inferInsert;
+
+// 7. Assessment Topic Feedback Table (`assessment_topic_feedback`)
+export const assessmentTopicFeedback = pgTable('assessment_topic_feedback', {
+    id: serial('id').primaryKey(),
+    assessmentId: integer('assessment_id')
+        .notNull()
+        .references(() => assessments.id, { onDelete: 'cascade' }), // FK to assessments, cascade delete if assessment is deleted
+    topicId: integer('topic_id')
+        .notNull()
+        .references(() => groomingTopics.id, { onDelete: 'cascade' }), // FK to grooming_topics, cascade delete if topic is deleted
+    rating: integer('rating'), // 1-5 rating for this topic
+    comments: text('comments'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => {
+    return {
+        assessmentTopicFeedbackUnique: primaryKey({ columns: [table.assessmentId, table.topicId] }), // Unique per assessment and topic
+        assessmentIdIdx: index('assessment_topic_feedback_assessment_id_idx').on(table.assessmentId), // Index for assessment id
+        topicIdIdx: index('assessment_topic_feedback_topic_id_idx').on(table.topicId), // Index for topic id
+    };
+});
+
+export type AssessmentTopicFeedback = typeof assessmentTopicFeedback.$inferSelect;
+export type AssessmentTopicFeedbackInsert = typeof assessmentTopicFeedback.$inferInsert;

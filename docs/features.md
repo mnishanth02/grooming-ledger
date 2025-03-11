@@ -78,9 +78,9 @@
 
 ## Candidate
 
-- Candidate can view their Team details, assigned PM, Coordinator, Accessor and Groomer
+- Candidate can view their Team details, assigned PM, Accessor and Groomer
 - they can view all the topics and Subtops for referenec to learn
 - They can search for all the previos client interview questions and learn
 - Candidate can update their topic completion and ready for assesment for the respective topic in the portal
 - They can view their Grooming lifecycle overview.
-- They can viw comments from their assessor and Groomer , or even from PM and Coordinator,
+- They can viw comments from their assessor and Groomer , or even from PM,
