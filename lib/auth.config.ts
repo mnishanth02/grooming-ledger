@@ -2,13 +2,12 @@ import { env } from "@/data/env/server-env";
 import db from "@/drizzle/db";
 import * as schema from "@/drizzle/schema";
 import { usersInsertSchema } from "@/drizzle/schema/auth";
-import { userRoleSchema } from "@/drizzle/schema/enums";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq, getTableColumns } from "drizzle-orm";
 import { NextAuthConfig } from "next-auth";
 import { z } from "zod";
 import { DEFAULT_SIGNIN_REDIRECT } from "@/lib/routes";
-import { findUserByEmail, oauthVerifyEmailAction } from "@/data/data-access/auth.queries";
+import { findUserByEmail } from "@/data/data-access/auth.queries";
 import Credentials from "next-auth/providers/credentials";
 import { SigninSchema } from "@/lib/validator/auth-validtor";
 import { OAuthAccountAlreadyLinkedError } from "@/lib/error";
@@ -27,14 +26,14 @@ export default {
           if (!user.success || !user.data) return null;
 
           if (!user.data.hashedPassword) throw new OAuthAccountAlreadyLinkedError();
-
           // const passwordsMatch = await argon2.verify(user.data.hashedPassword, password);
-
           const passwordsMatch = await verifyPassword(password, user.data.hashedPassword);
 
           if (passwordsMatch) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { hashedPassword, ...userWithoutPassword } = user.data;
+            console.log('[] userWithoutPassword', userWithoutPassword);
+
             return userWithoutPassword;
           }
         }
@@ -54,16 +53,13 @@ export default {
     ...DrizzleAdapter(db, {
       accountsTable: schema.accounts,
       usersTable: schema.users,
-      verificationTokensTable: schema.verificationTokens,
     }),
     createUser: async (user) => {
       const { id, ...insertData } = user;
       const hasDefaultId = getTableColumns(schema.users)["id"]["hasDefault"];
 
-      // TODO need to check when ot udpate admin / customer
       const newUser: z.infer<typeof usersInsertSchema> = {
         ...insertData,
-        role: userRoleSchema.enum.groomer,
         isActive: true,
       };
 
@@ -124,37 +120,6 @@ export default {
       return true;
     },
 
-    async signIn({ user, account, profile }) {
-
-      // For OAuth sign-in, update user data if needed
-      if (account?.provider === "google" && profile && user.id) {
-        const dbUser = await db.query.users.findFirst({
-          where: eq(schema.users.id, user.id)
-        });
-
-        if (dbUser) {
-          await db.update(schema.users)
-            .set({
-              name: profile.name || dbUser.name,
-              image: profile.picture || dbUser.image,
-              emailVerified: profile.email_verified ? new Date() : dbUser.emailVerified
-            })
-            .where(eq(schema.users.id, dbUser.id));
-        }
-      }
-
-      // Verify email for OAuth providers
-      if (account?.provider === "google" && profile?.email_verified) {
-        return true;
-      }
-
-      if (account?.provider === "credentials") {
-        return !!user.emailVerified;
-      }
-
-      return false;
-    },
-
     async jwt({ token, user, trigger, session }) {
       if (!token.maxAge) {
         token.maxAge = 30 * 24 * 60 * 60;
@@ -195,13 +160,5 @@ export default {
 
       return session;
     },
-  },
-
-  events: {
-    async linkAccount({ user, account }) {
-      if (["google"].includes(account.provider) && user.email) {
-        await oauthVerifyEmailAction(user.email);
-      }
-    },
-  },
+  }
 } satisfies NextAuthConfig;

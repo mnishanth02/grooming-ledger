@@ -1,85 +1,212 @@
-"use client";
+'use client';
 
-import AppDialog from "../common/app-dialog";
-import { forgotPassword } from "@/data/actions/auth.actions";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { ForgotPasswordSchema, ForgotPasswordSchemaType } from "@/lib/validator/auth-validtor";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import AppDialog from '../common/app-dialog';
+import { forgotPassword, resetPassword } from '@/data/actions/auth.actions';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  ForgotPasswordSchema,
+  ForgotPasswordSchemaType,
+  ResetPasswordSchema,
+  ResetPasswordSchemaType,
+} from '@/lib/validator/auth-validtor';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useAction } from 'next-safe-action/hooks';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { InputWithLabel } from '../common/input-with-label';
 
 export const ForgotPasswordForm = () => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [forgotPassserverError, setForgotPassServerError] = useState<
+    string | null
+  >(null);
+  const [resetPassserverError, setResetPassServerError] = useState<
+    string | null
+  >(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [email, setEmail] = useState<string>('');
+  const router = useRouter();
 
-  const form = useForm<ForgotPasswordSchemaType>({
+  const forgotForm = useForm<ForgotPasswordSchemaType>({
     resolver: zodResolver(ForgotPasswordSchema),
-    defaultValues: { email: "" },
-    mode: "onSubmit",
+    defaultValues: { email: '' },
+    mode: 'onSubmit',
   });
 
-  const { execute } = useAction(forgotPassword, {
-    onExecute: () => {
-      setIsSubmitting(true);
-      setServerError(null);
+  const resetForm = useForm<ResetPasswordSchemaType>({
+    resolver: zodResolver(ResetPasswordSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
     },
-    onSuccess: (data) => {
-      toast.success(data.data?.message || "Password reset email sent successfully");
-      form.reset();
-      setIsDialogOpen(false);
-    },
-    onError: (error) => {
-      if (error.error?.serverError) {
-        setServerError(error.error.serverError);
-      } else {
-        setServerError("Something went wrong");
-      }
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
-    },
+    mode: 'onSubmit',
   });
 
-  const onSubmit = (data: ForgotPasswordSchemaType) => {
-    execute(data);
+  const { execute: executeForgotPass, isPending: isForgotPassPending } =
+    useAction(forgotPassword, {
+      onExecute: () => {
+        setEmail('');
+        setForgotPassServerError(null);
+      },
+      onSuccess: (data) => {
+        setEmail(data.data?.email || '');
+        forgotForm.reset();
+      },
+      onError: (error) => {
+        if (error.error?.serverError) {
+          setForgotPassServerError(error.error.serverError);
+        } else {
+          setForgotPassServerError('Something went wrong');
+        }
+      },
+    });
+
+  const { execute: executeResetPassword, isPending: isResetPassPending } =
+    useAction(resetPassword, {
+      onExecute: () => {
+        setResetPassServerError(null);
+      },
+      onSuccess: (data) => {
+        toast.success(data.data?.message || 'Password reset successfully');
+        resetForm.reset();
+        setEmail('');
+        setIsDialogOpen(false);
+        router.push('/auth/sign-in');
+      },
+      onError: (error) => {
+        if (error.error?.serverError) {
+          setResetPassServerError(error.error.serverError);
+        } else if (error.error?.validationErrors) {
+          Object.entries(error.error.validationErrors).forEach(
+            ([field, error]) => {
+              if (field in resetForm.getValues()) {
+                resetForm.setError(field as keyof ResetPasswordSchemaType, {
+                  message: String(error),
+                });
+              }
+            }
+          );
+        } else {
+          setResetPassServerError('An unexpected error occurred');
+        }
+      },
+    });
+
+  const onSubmitForgotPass = (data: ForgotPasswordSchemaType) => {
+    executeForgotPass(data);
   };
 
-  const formContent = (
-    <Form { ...form }>
+  const onSubmitResetForm = (values: ResetPasswordSchemaType) => {
+    executeResetPassword({
+      email,
+      password: values.password,
+      confirmPassword: values.confirmPassword,
+    });
+  };
+
+  const resetPassFormContent = (
+    <Form {...resetForm}>
       <form className="space-y-4">
-        { serverError && <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">{ serverError }</div> }
+        {resetPassserverError && (
+          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">
+            {resetPassserverError}
+          </div>
+        )}
 
         <div className="space-y-4">
-          <FormField
-            control={ form.control }
-            name="email"
-            render={ ({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input { ...field } placeholder="Enter your email" type="email" autoComplete="email" className="h-11" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            ) }
+          <InputWithLabel
+            fieldTitle="New Password"
+            nameInSchema="password"
+            type="password"
+            placeholder="Enter your new password"
+            className="h-11"
+          />
+
+          <InputWithLabel
+            fieldTitle="Confirm Password"
+            nameInSchema="confirmPassword"
+            type="password"
+            placeholder="Enter your new password"
+            className="h-11"
           />
         </div>
 
-        <Button type="button" onClick={ form.handleSubmit(onSubmit) } className="h-11 w-full" disabled={ isSubmitting }>
-          { isSubmitting ? (
+        <Button
+          type="button"
+          onClick={resetForm.handleSubmit(onSubmitResetForm)}
+          className="h-11 w-full"
+          disabled={isResetPassPending}
+        >
+          {isResetPassPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending reset link...
+              Resetting Password...
             </>
           ) : (
-            "Send Reset Link"
-          ) }
+            'Reset Password'
+          )}
+        </Button>
+      </form>
+    </Form>
+  );
+
+  const forgotPassFormContent = (
+    <Form {...forgotForm}>
+      <form className="space-y-4">
+        {forgotPassserverError && (
+          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">
+            {forgotPassserverError}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <FormField
+            control={forgotForm.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Enter your email"
+                    type="email"
+                    autoComplete="email"
+                    className="h-11"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Button
+          type="button"
+          onClick={forgotForm.handleSubmit(onSubmitForgotPass)}
+          className="h-11 w-full"
+          disabled={isForgotPassPending}
+        >
+          {isForgotPassPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            'Verify Email'
+          )}
         </Button>
       </form>
     </Form>
@@ -87,13 +214,17 @@ export const ForgotPasswordForm = () => {
 
   return (
     <AppDialog
-      trigger={ <span className="flex-1 text-end text-sm hover:cursor-pointer hover:underline">Forgot Password</span> }
+      trigger={
+        <span className="flex-1 text-end text-sm hover:cursor-pointer hover:underline">
+          Forgot Password
+        </span>
+      }
       title="Enter Your Email"
-      message="We will send you an email with a link to reset your password."
-      open={ isDialogOpen }
-      onOpenChange={ setIsDialogOpen }
-      showButtons={ false }
-      customContent={ formContent }
+      message="We will validate your email"
+      open={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+      showButtons={false}
+      customContent={email ? resetPassFormContent : forgotPassFormContent}
     />
   );
 };

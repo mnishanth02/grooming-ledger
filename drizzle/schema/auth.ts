@@ -56,19 +56,7 @@ export const accounts = pgTable(
   ]
 );
 
-export const verificationTokens = pgTable(
-  "verification_tokens",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (table) => [
-    primaryKey({
-      columns: [table.identifier, table.token],
-    }),
-  ]
-);
+
 
 // Audit log for user actions
 export const userAuditLogs = pgTable(
@@ -126,19 +114,16 @@ export const userAuditLogsRelations = relations(userAuditLogs, ({ one }) => ({
 
 export const usersSchema = createSelectSchema(users);
 export const accountsSchema = createSelectSchema(accounts);
-export const verificationTokensSchema = createSelectSchema(verificationTokens);
 export const userAuditLogsSchema = createSelectSchema(userAuditLogs);
 
 /************** Insert SChema ****************/
 
 export const usersInsertSchema = createInsertSchema(users);
 export const accountsInsertSchema = createInsertSchema(accounts);
-export const verificationTokensInsertSchema = createInsertSchema(verificationTokens);
 export const userAuditLogsInsertSchema = createInsertSchema(userAuditLogs);
 
 /************** Update SChema ****************/
 
 export const usersUpdateSchema = createUpdateSchema(users);
 export const accountsUpdateSchema = createUpdateSchema(accounts);
-export const verificationTokensUpdateSchema = createUpdateSchema(verificationTokens);
 export const userAuditLogsUpdateSchema = createUpdateSchema(userAuditLogs);

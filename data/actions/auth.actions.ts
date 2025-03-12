@@ -3,11 +3,10 @@
 import { actionClient } from "@/lib/utils/safe-action";
 import { z } from "zod";
 import {
-  forgotPasswordAction as forgotPasswordQuery,
-  resetPasswordAction as resetPasswordQuery,
+  forgotPasswordQuery,
+  resetPasswordQuery,
   signinQuery,
   signupQuery,
-  verifyCredentialsEmailAction,
 } from "@/data/data-access/auth.queries";
 import { ForgotPasswordSchema, SigninSchema, SignupSchema } from "@/lib/validator/auth-validtor";
 import { ActionError } from "@/lib/error";
@@ -62,11 +61,10 @@ export const forgotPassword = actionClient
     const result = await forgotPasswordQuery(parsedInput);
 
     if (!result.success) {
-      throw new ActionError(result.error?.message || "Failed to send password reset email");
+      throw new ActionError(result.error?.message || "Failed to validte Email");
     }
-
     return {
-      message: result.data?.msg || "Password reset email sent successfully"
+      email: result.data?.email
     };
   });
 
@@ -78,13 +76,17 @@ export const resetPassword = actionClient
   })
   .schema(z.object({
     email: z.string().email("Invalid email format"),
-    token: z.string().min(1, "Token is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(8, "Password must be at least 8 characters"),
   }))
   .action(async ({ parsedInput }) => {
-    const { email, token, password } = parsedInput;
+    const { email, password, confirmPassword } = parsedInput;
 
-    const result = await resetPasswordQuery(email, token, { password });
+    if (password !== confirmPassword) {
+      throw new ActionError("Passwords do not match");
+    }
+
+    const result = await resetPasswordQuery(email, { password, confirmPassword });
 
     if (!result.success) {
       throw new ActionError(result.error?.message || "Failed to reset password");
@@ -92,28 +94,5 @@ export const resetPassword = actionClient
 
     return {
       message: "Password reset successfully"
-    };
-  });
-
-// Email verification action
-export const verifyEmail = actionClient
-  .metadata({
-    actionName: "verifyEmail",
-    requiresAuth: false
-  })
-  .schema(z.object({
-    token: z.string().min(1, "Token is required")
-  }))
-  .action(async ({ parsedInput }) => {
-    const { token } = parsedInput;
-
-    const result = await verifyCredentialsEmailAction(token);
-
-    if (!result.success) {
-      throw new ActionError(result.error?.message || "Failed to verify email");
-    }
-
-    return {
-      message: "Email verified successfully"
     };
   });
