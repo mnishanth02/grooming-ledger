@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface BackButtonProps {
   label?: string;
@@ -20,13 +20,8 @@ export function BackButton({ label, href }: BackButtonProps) {
   };
 
   return (
-    <Button
-      variant="link"
-      className="cursor-pointer"
-      onClick={handleClick}
-      aria-label="Back"
-    >
-      {label || 'Back'}
+    <Button variant="link" className="cursor-pointer" onClick={handleClick} aria-label="Back">
+      {label || "Back"}
     </Button>
   );
 }

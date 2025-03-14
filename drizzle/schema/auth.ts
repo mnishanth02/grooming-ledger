@@ -1,8 +1,18 @@
-import { userRoleEnum } from "./enums";
 import { relations } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import type { AdapterAccountType } from "next-auth/adapters";
+import { userRoleEnum } from "./enums";
 
 // ----------------------- USERS & AUTHENTICATION -----------------------
 export const users = pgTable(
@@ -27,7 +37,7 @@ export const users = pgTable(
     index("users_name_idx").on(table.name),
     index("users_email_idx").on(table.email),
     index("users_role_idx").on(table.role),
-  ]
+  ],
 );
 
 export const accounts = pgTable(
@@ -53,10 +63,8 @@ export const accounts = pgTable(
         columns: [account.provider, account.providerAccountId],
       }),
     },
-  ]
+  ],
 );
-
-
 
 // Audit log for user actions
 export const userAuditLogs = pgTable(
@@ -78,7 +86,7 @@ export const userAuditLogs = pgTable(
     index("user_audit_logs_user_id_idx").on(table.userId),
     index("user_audit_logs_action_idx").on(table.action),
     index("user_audit_logs_created_at_idx").on(table.createdAt),
-  ]
+  ],
 );
 
 /*******************************************

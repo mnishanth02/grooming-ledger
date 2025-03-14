@@ -1,20 +1,19 @@
+import { findUserByEmail } from "@/data/data-access/auth.queries";
 import { env } from "@/data/env/server-env";
 import db from "@/drizzle/db";
 import * as schema from "@/drizzle/schema";
-import { usersInsertSchema } from "@/drizzle/schema/auth";
+import type { usersInsertSchema } from "@/drizzle/schema/auth";
+import { OAuthAccountAlreadyLinkedError } from "@/lib/error";
+import { DEFAULT_SIGNIN_REDIRECT } from "@/lib/routes";
+import { verifyPassword } from "@/lib/utils/hash";
+import { SigninSchema } from "@/lib/validator/auth-validtor";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq, getTableColumns } from "drizzle-orm";
-import { NextAuthConfig } from "next-auth";
-import { z } from "zod";
-import { DEFAULT_SIGNIN_REDIRECT } from "@/lib/routes";
-import { findUserByEmail } from "@/data/data-access/auth.queries";
+import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { SigninSchema } from "@/lib/validator/auth-validtor";
-import { OAuthAccountAlreadyLinkedError } from "@/lib/error";
-import { verifyPassword } from "@/lib/utils/hash";
+import type { z } from "zod";
 export default {
   providers: [
-
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = SigninSchema.safeParse(credentials);
@@ -32,7 +31,7 @@ export default {
           if (passwordsMatch) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { hashedPassword, ...userWithoutPassword } = user.data;
-            console.log('[] userWithoutPassword', userWithoutPassword);
+            console.log("[] userWithoutPassword", userWithoutPassword);
 
             return userWithoutPassword;
           }
@@ -56,7 +55,8 @@ export default {
     }),
     createUser: async (user) => {
       const { id, ...insertData } = user;
-      const hasDefaultId = getTableColumns(schema.users)["id"]["hasDefault"];
+      // const hasDefaultId = getTableColumns(schema.users)["id"]["hasDefault"];
+      const hasDefaultId = getTableColumns(schema.users).id.hasDefault;
 
       const newUser: z.infer<typeof usersInsertSchema> = {
         ...insertData,
@@ -87,15 +87,11 @@ export default {
         "/settings",
       ];
 
-      const isProtectedPath = protectedPaths.some(path =>
-        nextUrl.pathname.startsWith(path)
-      );
+      const isProtectedPath = protectedPaths.some((path) => nextUrl.pathname.startsWith(path));
 
       // Admin/staff only routes
       const adminPaths = ["/admin", "/dashboard"];
-      const isAdminPath = adminPaths.some(path =>
-        nextUrl.pathname.startsWith(path)
-      );
+      const isAdminPath = adminPaths.some((path) => nextUrl.pathname.startsWith(path));
 
       if (isProtectedPath || isAdminPath) {
         if (!isLoggedIn) {
@@ -160,5 +156,5 @@ export default {
 
       return session;
     },
-  }
+  },
 } satisfies NextAuthConfig;

@@ -1,154 +1,80 @@
-'use client';
+"use client";
 
-import { StoreSwitcher } from './store-switcher';
-import { NavMain } from '@/components/sidebar/nav-main';
-import { NavUser } from '@/components/sidebar/nav-user';
+import { NavMain } from "@/components/sidebar/nav-main";
+import { NavUser } from "@/components/sidebar/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
-} from '@/components/ui/sidebar';
-import {
-  BarChart,
-  GalleryHorizontalEnd,
-  LayoutDashboard,
-  Package,
-  Settings2,
-  ShoppingBag,
-  Sliders,
-  Store,
-  Users,
-} from 'lucide-react';
-import { User } from 'next-auth';
-import * as React from 'react';
+} from "@/components/ui/sidebar";
+import { BarChart, GalleryHorizontalEnd, LayoutDashboard, Settings2, Users } from "lucide-react";
+import type { User } from "next-auth";
+import type * as React from "react";
 
-const getDashboardNavItems = (storeId: string) => [
+const getDashboardNavItems = () => [
   {
-    title: 'Overview',
-    url: `/admin/${storeId}`,
+    title: "Overview",
+    url: "/admin",
     icon: LayoutDashboard,
   },
   {
-    title: 'Billboards',
-    url: `/admin/${storeId}/billboards`,
+    title: "Candidates",
+    url: "/admin/candidates",
+    icon: Users,
+  },
+  {
+    title: "Assocaites",
+    url: "/admin/associates",
     icon: GalleryHorizontalEnd,
   },
+
   {
-    title: 'Products',
-    url: `/admin/${storeId}/products`,
-    icon: Package,
-    items: [
-      {
-        title: 'All Products',
-        url: `/admin/${storeId}/products`,
-      },
-      {
-        title: 'Categories',
-        url: `/admin/${storeId}/products/categories`,
-      },
-      {
-        title: 'Inventory',
-        url: `/admin/${storeId}/products/inventory`,
-      },
-    ],
-  },
-  {
-    title: 'Orders',
-    url: `/admin/${storeId}/orders`,
-    icon: ShoppingBag,
-    items: [
-      {
-        title: 'All Orders',
-        url: `/admin/${storeId}/orders`,
-      },
-      {
-        title: 'Abandoned Carts',
-        url: `/admin/${storeId}/orders/abandoned`,
-      },
-    ],
-  },
-  {
-    title: 'Customers',
-    url: `/admin/${storeId}/customers`,
-    icon: Users,
-    items: [
-      {
-        title: 'All Customers',
-        url: `/admin/${storeId}/customers`,
-      },
-      {
-        title: 'Customer Groups',
-        url: `/admin/${storeId}/customers/groups`,
-      },
-    ],
-  },
-  {
-    title: 'Analytics',
-    url: `/admin/${storeId}/analytics`,
+    title: "Reports",
+    url: "/admin/reports",
     icon: BarChart,
   },
   {
-    title: 'Settings',
-    url: `/admin/${storeId}/settings`,
+    title: "Settings",
+    url: "/admin/settings",
     icon: Settings2,
-  },
-  {
-    title: 'Advanced Settings',
-    url: `/admin/${storeId}/settings/advanced`,
-    icon: Sliders,
-    items: [
-      {
-        title: 'General',
-        url: `/admin/${storeId}/settings`,
-      },
-      {
-        title: 'Payments',
-        url: `/admin/${storeId}/settings/payments`,
-      },
-      {
-        title: 'Shipping',
-        url: `/admin/${storeId}/settings/shipping`,
-      },
-      {
-        title: 'Taxes',
-        url: `/admin/${storeId}/settings/taxes`,
-      },
-    ],
   },
 ];
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: User;
-  stores: any;
-  currentStoreId: string;
 }
 
-export function AppSidebar({
-  user,
-  stores,
-  currentStoreId,
-  ...props
-}: AppSidebarProps) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   // Format stores for the team switcher
-  const formattedStores = stores.map((store) => ({
-    name: store.name,
-    logo: Store,
-    plan: 'Store',
-    id: store.id,
-  }));
 
   // Get navigation items for the current store
-  const navItems = getDashboardNavItems(currentStoreId);
+  const navItems = getDashboardNavItems();
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <StoreSwitcher
-          stores={formattedStores}
-          activeStoreId={currentStoreId}
-        />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                {/* <activeStore.logo className="size-4" /> */}
+                <span>PwC</span>
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">Grooming Hub</span>
+                <span className="truncate text-xs">Captive</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />

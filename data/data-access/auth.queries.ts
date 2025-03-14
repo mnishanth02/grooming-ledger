@@ -1,21 +1,27 @@
 import "server-only";
 
 import { lower } from "@/data/helper/db-helper";
-import { ApiResponse } from "@/types/api";
-import { ForgotPasswordSchema, ResetPasswordSchema, SigninSchema, SignupSchema } from "@/lib/validator/auth-validtor";
-import { signIn } from "@/lib/auth";
 import db from "@/drizzle/db";
 import { users } from "@/drizzle/schema";
+import { signIn } from "@/lib/auth";
+import { hashPassword } from "@/lib/utils/hash";
+import {
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
+  SigninSchema,
+  SignupSchema,
+} from "@/lib/validator/auth-validtor";
+import type { ApiResponse } from "@/types/api";
 import { eq } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { z } from "zod";
-import { hashPassword } from "@/lib/utils/hash";
-
 
 // ******************************************************
 // ******************* signupQuery **********************
 // ******************************************************
-export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId: string; message: string }>> {
+export async function signupQuery(
+  input: unknown,
+): Promise<ApiResponse<{ userId: string; message: string }>> {
   try {
     // Validate input with Zod
     const validatedInput = SignupSchema.parse(input);
@@ -31,8 +37,9 @@ export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId:
         success: false,
         error: {
           code: 400,
-          message: "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-        }
+          message:
+            "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+        },
       };
     }
 
@@ -43,8 +50,8 @@ export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId:
         success: false,
         error: {
           code: 409,
-          message: "An account with this email already exists. Please sign in instead."
-        }
+          message: "An account with this email already exists. Please sign in instead.",
+        },
       };
     }
 
@@ -75,18 +82,17 @@ export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId:
         success: false,
         error: {
           code: 500,
-          message: "Failed to create user record"
-        }
+          message: "Failed to create user record",
+        },
       };
     }
-
 
     return {
       success: true,
       data: {
         userId: newUser.id,
-        message: "Account created successfully. Please check your email for verification."
-      }
+        message: "Account created successfully. Please check your email for verification.",
+      },
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -94,8 +100,8 @@ export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId:
         success: false,
         error: {
           code: 400,
-          message: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
-        }
+          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
+        },
       };
     }
 
@@ -104,7 +110,7 @@ export async function signupQuery(input: unknown): Promise<ApiResponse<{ userId:
       error: {
         code: 500,
         message: error instanceof Error ? error.message : "An unknown error occurred",
-      }
+      },
     };
   }
 }
@@ -121,7 +127,7 @@ export async function signinQuery(input: unknown): Promise<ApiResponse<{ message
       await signIn("credentials", { ...validatedInput, redirect: false });
       return {
         success: true,
-        data: { message: "Successfully signed in" }
+        data: { message: "Successfully signed in" },
       };
     } catch (err) {
       if (err instanceof AuthError) {
@@ -132,32 +138,32 @@ export async function signinQuery(input: unknown): Promise<ApiResponse<{ message
               success: false,
               error: {
                 code: 401,
-                message: "Invalid credentials"
-              }
+                message: "Invalid credentials",
+              },
             };
           case "AccessDenied":
             return {
               success: false,
               error: {
                 code: 403,
-                message: "Please verify your email, sign up again to resend verification email"
-              }
+                message: "Please verify your email, sign up again to resend verification email",
+              },
             };
           case "OAuthAccountAlreadyLinked" as AuthError["type"]:
             return {
               success: false,
               error: {
                 code: 409,
-                message: "Login with your Google or Github account"
-              }
+                message: "Login with your Google or Github account",
+              },
             };
           default:
             return {
               success: false,
               error: {
                 code: 500,
-                message: "Oops. Something went wrong"
-              }
+                message: "Oops. Something went wrong",
+              },
             };
         }
       }
@@ -169,8 +175,8 @@ export async function signinQuery(input: unknown): Promise<ApiResponse<{ message
         success: false,
         error: {
           code: 400,
-          message: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
-        }
+          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
+        },
       };
     }
 
@@ -179,19 +185,21 @@ export async function signinQuery(input: unknown): Promise<ApiResponse<{ message
       error: {
         code: 500,
         message: error instanceof Error ? error.message : "An unknown error occurred",
-      }
+      },
     };
   }
 }
 
-
-
 // ******************************************************
 // **************** findUserByEmail ********************
 // ******************************************************
-export async function findUserByEmail(email: unknown): Promise<ApiResponse<typeof users.$inferSelect | null>> {
+export async function findUserByEmail(
+  email: unknown,
+): Promise<ApiResponse<typeof users.$inferSelect | null>> {
   try {
-    const schema = z.object({ email: z.string().email("Invalid email format") });
+    const schema = z.object({
+      email: z.string().email("Invalid email format"),
+    });
     const validatedData = schema.parse({ email });
 
     const user = await db
@@ -206,15 +214,14 @@ export async function findUserByEmail(email: unknown): Promise<ApiResponse<typeo
         success: false,
         error: {
           code: 400,
-          message: "Invalid email"
-        }
+          message: "Invalid email",
+        },
       };
-
     }
 
     return {
       success: true,
-      data: user
+      data: user,
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -222,8 +229,8 @@ export async function findUserByEmail(email: unknown): Promise<ApiResponse<typeo
         success: false,
         error: {
           code: 400,
-          message: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
-        }
+          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
+        },
       };
     }
 
@@ -232,7 +239,7 @@ export async function findUserByEmail(email: unknown): Promise<ApiResponse<typeo
       error: {
         code: 500,
         message: error instanceof Error ? error.message : "An unknown error occurred",
-      }
+      },
     };
   }
 }
@@ -242,7 +249,7 @@ export async function findUserByEmail(email: unknown): Promise<ApiResponse<typeo
 // ******************************************************
 
 export async function forgotPasswordQuery(
-  input: unknown
+  input: unknown,
 ): Promise<ApiResponse<{ email?: string }>> {
   try {
     const validatedInput = ForgotPasswordSchema.parse(input);
@@ -265,8 +272,8 @@ export async function forgotPasswordQuery(
           success: false,
           error: {
             code: 400,
-            message: "This user was created with OAuth, please sign in with OAuth"
-          }
+            message: "This user was created with OAuth, please sign in with OAuth",
+          },
         };
       }
 
@@ -278,7 +285,7 @@ export async function forgotPasswordQuery(
 
       return {
         success: true,
-        data: { email: existingUser.email }
+        data: { email: existingUser.email },
       };
     } catch (err) {
       console.error(err);
@@ -286,8 +293,8 @@ export async function forgotPasswordQuery(
         success: false,
         error: {
           code: 500,
-          message: "Internal Server Error"
-        }
+          message: "Internal Server Error",
+        },
       };
     }
   } catch (error) {
@@ -296,8 +303,8 @@ export async function forgotPasswordQuery(
         success: false,
         error: {
           code: 400,
-          message: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
-        }
+          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
+        },
       };
     }
 
@@ -306,7 +313,7 @@ export async function forgotPasswordQuery(
       error: {
         code: 500,
         message: error instanceof Error ? error.message : "An unknown error occurred",
-      }
+      },
     };
   }
 }
@@ -317,7 +324,7 @@ export async function forgotPasswordQuery(
 
 export async function resetPasswordQuery(
   email: (typeof users.$inferSelect)["email"],
-  values: unknown
+  values: unknown,
 ): Promise<ApiResponse<void>> {
   try {
     const validatedValues = ResetPasswordSchema.parse(values);
@@ -325,9 +332,6 @@ export async function resetPasswordQuery(
 
     console.log({ email, password });
     const existingUserResponse = await findUserByEmail(email);
-
-
-
 
     if (
       !existingUserResponse.success ||
@@ -338,8 +342,8 @@ export async function resetPasswordQuery(
         success: false,
         error: {
           code: 400,
-          message: "Oops, something went wrong"
-        }
+          message: "Oops, something went wrong",
+        },
       };
     }
 
@@ -354,7 +358,7 @@ export async function resetPasswordQuery(
     await db.update(users).set({ hashedPassword }).where(eq(users.email, email));
 
     return {
-      success: true
+      success: true,
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -362,8 +366,8 @@ export async function resetPasswordQuery(
         success: false,
         error: {
           code: 400,
-          message: `Validation error: ${error.errors.map(e => e.message).join(', ')}`,
-        }
+          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
+        },
       };
     }
 
@@ -372,7 +376,7 @@ export async function resetPasswordQuery(
       error: {
         code: 500,
         message: error instanceof Error ? error.message : "An unknown error occurred",
-      }
+      },
     };
   }
 }

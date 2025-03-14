@@ -1,108 +1,102 @@
-'use client';
+"use client";
 
-import AppDialog from '../common/app-dialog';
-import { forgotPassword, resetPassword } from '@/data/actions/auth.actions';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { forgotPassword, resetPassword } from "@/data/actions/auth.actions";
 import {
   ForgotPasswordSchema,
-  ForgotPasswordSchemaType,
+  type ForgotPasswordSchemaType,
   ResetPasswordSchema,
-  ResetPasswordSchemaType,
-} from '@/lib/validator/auth-validtor';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useAction } from 'next-safe-action/hooks';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { InputWithLabel } from '../common/input-with-label';
+  type ResetPasswordSchemaType,
+} from "@/lib/validator/auth-validtor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import AppDialog from "../common/app-dialog";
+import { InputWithLabel } from "../common/input-with-label";
 
 export const ForgotPasswordForm = () => {
-  const [forgotPassserverError, setForgotPassServerError] = useState<
-    string | null
-  >(null);
-  const [resetPassserverError, setResetPassServerError] = useState<
-    string | null
-  >(null);
+  const [forgotPassserverError, setForgotPassServerError] = useState<string | null>(null);
+  const [resetPassserverError, setResetPassServerError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState<string>("");
   const router = useRouter();
 
   const forgotForm = useForm<ForgotPasswordSchemaType>({
     resolver: zodResolver(ForgotPasswordSchema),
-    defaultValues: { email: '' },
-    mode: 'onSubmit',
+    defaultValues: { email: "" },
+    mode: "onSubmit",
   });
 
   const resetForm = useForm<ResetPasswordSchemaType>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
-      password: '',
-      confirmPassword: '',
+      password: "",
+      confirmPassword: "",
     },
-    mode: 'onSubmit',
+    mode: "onSubmit",
   });
 
-  const { execute: executeForgotPass, isPending: isForgotPassPending } =
-    useAction(forgotPassword, {
-      onExecute: () => {
-        setEmail('');
-        setForgotPassServerError(null);
-      },
-      onSuccess: (data) => {
-        setEmail(data.data?.email || '');
-        forgotForm.reset();
-      },
-      onError: (error) => {
-        if (error.error?.serverError) {
-          setForgotPassServerError(error.error.serverError);
-        } else {
-          setForgotPassServerError('Something went wrong');
-        }
-      },
-    });
+  const { execute: executeForgotPass, isPending: isForgotPassPending } = useAction(forgotPassword, {
+    onExecute: () => {
+      setEmail("");
+      setForgotPassServerError(null);
+    },
+    onSuccess: (data) => {
+      setEmail(data.data?.email || "");
+      forgotForm.reset();
+    },
+    onError: (error) => {
+      if (error.error?.serverError) {
+        setForgotPassServerError(error.error.serverError);
+      } else {
+        setForgotPassServerError("Something went wrong");
+      }
+    },
+  });
 
-  const { execute: executeResetPassword, isPending: isResetPassPending } =
-    useAction(resetPassword, {
+  const { execute: executeResetPassword, isPending: isResetPassPending } = useAction(
+    resetPassword,
+    {
       onExecute: () => {
         setResetPassServerError(null);
       },
       onSuccess: (data) => {
-        toast.success(data.data?.message || 'Password reset successfully');
+        toast.success(data.data?.message || "Password reset successfully");
         resetForm.reset();
-        setEmail('');
+        setEmail("");
         setIsDialogOpen(false);
-        router.push('/auth/sign-in');
+        router.push("/auth/sign-in");
       },
       onError: (error) => {
         if (error.error?.serverError) {
           setResetPassServerError(error.error.serverError);
         } else if (error.error?.validationErrors) {
-          Object.entries(error.error.validationErrors).forEach(
-            ([field, error]) => {
-              if (field in resetForm.getValues()) {
-                resetForm.setError(field as keyof ResetPasswordSchemaType, {
-                  message: String(error),
-                });
-              }
+          for (const [field] of Object.entries(error.error.validationErrors)) {
+            if (field in resetForm.getValues()) {
+              resetForm.setError(field as keyof ResetPasswordSchemaType, {
+                message: String(error),
+              });
             }
-          );
+          }
         } else {
-          setResetPassServerError('An unexpected error occurred');
+          setResetPassServerError("An unexpected error occurred");
         }
       },
-    });
+    },
+  );
 
   const onSubmitForgotPass = (data: ForgotPasswordSchemaType) => {
     executeForgotPass(data);
@@ -120,7 +114,7 @@ export const ForgotPasswordForm = () => {
     <Form {...resetForm}>
       <form className="space-y-4">
         {resetPassserverError && (
-          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
             {resetPassserverError}
           </div>
         )}
@@ -155,7 +149,7 @@ export const ForgotPasswordForm = () => {
               Resetting Password...
             </>
           ) : (
-            'Reset Password'
+            "Reset Password"
           )}
         </Button>
       </form>
@@ -166,7 +160,7 @@ export const ForgotPasswordForm = () => {
     <Form {...forgotForm}>
       <form className="space-y-4">
         {forgotPassserverError && (
-          <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
             {forgotPassserverError}
           </div>
         )}
@@ -205,7 +199,7 @@ export const ForgotPasswordForm = () => {
               Verifying...
             </>
           ) : (
-            'Verify Email'
+            "Verify Email"
           )}
         </Button>
       </form>

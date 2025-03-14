@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useMounted } from '@/hooks/general/use-mounted';
+import { useMounted } from "@/hooks/general/use-mounted";
 
 export const ModalProvider = () => {
   const mounted = useMounted();

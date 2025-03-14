@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin "tailwindcss-animate";
 
@@ -158,8 +158,8 @@
   }
 
   /* Form Elements */
-  input[type='number']::-webkit-inner-spin-button,
-  input[type='number']::-webkit-outer-spin-button {
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
@@ -259,9 +259,7 @@
   .text-pretty {
     text-wrap: pretty;
   }
-  s
-  /* Links */
-  .link-subtle {
+  s /* Links */ .link-subtle {
     @apply text-foreground/80 transition-colors hover:text-foreground;
   }
   .link-underline {
@@ -282,7 +280,6 @@
 
 /* Third-party Component Styles */
 .swiper-horizontal > .section-pagination-bullets .swiper-pagination-bullet,
-.swiper-pagination-horizontal.swiper-pagination-bullets
-  .swiper-pagination-bullet {
+.swiper-pagination-horizontal.swiper-pagination-bullets .swiper-pagination-bullet {
   @apply bg-primary;
 }

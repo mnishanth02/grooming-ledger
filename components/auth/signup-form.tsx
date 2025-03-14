@@ -1,25 +1,18 @@
-'use client';
+"use client";
 
-import AppDialog from '../common/app-dialog';
-import { Button } from '../ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '../ui/form';
-import { Input } from '../ui/input';
-import { signup } from '@/data/actions/auth.actions';
-import { SignupSchema, SignupSchemaType } from '@/lib/validator/auth-validtor';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useAction } from 'next-safe-action/hooks';
-import { useRouter } from 'next/navigation';
-import { FC, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { signup } from "@/data/actions/auth.actions";
+import { SignupSchema, type SignupSchemaType } from "@/lib/validator/auth-validtor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
+import { type FC, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import AppDialog from "../common/app-dialog";
+import { Button } from "../ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
 
 export const SignUpForm: FC = () => {
   const router = useRouter();
@@ -30,11 +23,11 @@ export const SignUpForm: FC = () => {
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
-      name: '',
-      email: '',
-      password: '',
+      name: "",
+      email: "",
+      password: "",
     },
-    mode: 'onSubmit',
+    mode: "onSubmit",
   });
 
   const { execute } = useAction(signup, {
@@ -43,7 +36,7 @@ export const SignUpForm: FC = () => {
       setServerError(null);
     },
     onSuccess: (data) => {
-      toast.success(data.data?.message || 'Account created successfully!');
+      toast.success(data.data?.message || "Account created successfully!");
       form.reset();
       setIsDialogOpen(true);
     },
@@ -51,7 +44,7 @@ export const SignUpForm: FC = () => {
       if (error.error?.serverError) {
         setServerError(error.error.serverError);
       } else {
-        setServerError('Something went wrong');
+        setServerError("Something went wrong");
       }
     },
     onSettled: () => {
@@ -68,7 +61,7 @@ export const SignUpForm: FC = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {serverError && (
-            <div className="text-destructive bg-destructive/10 rounded-md p-3 text-sm">
+            <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
               {serverError}
             </div>
           )}
@@ -142,7 +135,7 @@ export const SignUpForm: FC = () => {
                 Creating account...
               </>
             ) : (
-              'Create account'
+              "Create account"
             )}
           </Button>
         </form>
@@ -155,9 +148,9 @@ export const SignUpForm: FC = () => {
         message="Account created Successfully."
         showSecondaryButton={false}
         primaryButton={{
-          text: 'Continue to Sign In',
-          variant: 'default',
-          onClick: () => router.push('/auth/sign-in'),
+          text: "Continue to Sign In",
+          variant: "default",
+          onClick: () => router.push("/auth/sign-in"),
         }}
         className="sm:max-w-md"
       />
