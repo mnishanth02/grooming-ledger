@@ -72,7 +72,7 @@
     "next": "^15.2.2",
     "next-auth": "^5.0.0-beta.25",
     "next-safe-action": "^7.10.4",
-    "next-themes": "^0.4.5",
+    "next-themes": "^0.4.6",
     "nextjs-toploader": "^3.7.15",
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
@@ -92,13 +92,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@tailwindcss/postcss": "^4.0.12",
-    "@types/node": "^22",
+    "@tailwindcss/postcss": "^4.0.14",
+    "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "drizzle-kit": "^0.30.5",
     "husky": "^9.1.7",
-    "tailwindcss": "^4.0.12",
+    "tailwindcss": "^4.0.14",
     "typescript": "^5.8.2"
   },
   "lint-staged": {
