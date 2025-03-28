@@ -4,7 +4,7 @@ import { SignUpForm } from "./signup-form";
 const SignUpFormProvider = () => {
   return (
     <CardWrapper
-      headerLabel="Sign up to Navodhai Store"
+      headerLabel="Sign up to PwC Grooming Hub"
       backButtonLabel="Already have an account?"
       backButtonHref="/auth/sign-in"
     >
