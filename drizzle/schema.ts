@@ -15,3 +15,5 @@ export {
   usersRelations,
   userAuditLogsRelations,
 } from "./schema/auth";
+
+export { teams } from "./schema/grooming";

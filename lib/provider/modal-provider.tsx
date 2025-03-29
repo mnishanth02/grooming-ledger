@@ -1,5 +1,6 @@
 "use client";
 
+import TeamModal from "@/components/modals/team-modal";
 import { useMounted } from "@/hooks/general/use-mounted";
 
 export const ModalProvider = () => {
@@ -7,5 +8,9 @@ export const ModalProvider = () => {
 
   if (!mounted) return null;
 
-  return <></>;
+  return (
+    <>
+      <TeamModal />
+    </>
+  );
 };

@@ -11,7 +11,6 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <NextTopLoader color="#15803d" shadow="0 0 10px #15803d,0 0 5px #15803d" />
-      {/* <TooltipProvider delayDuration={0}>{children}</TooltipProvider> */}
       <SessionProvider>
         <ModalProvider />
         {children}
