@@ -1,5 +1,5 @@
 {
-  "id": "39715d30-4de2-4c6c-8e51-9be1d092ecd8",
+  "id": "977ebdfa-dc63-43d1-9e0b-1cc0cbfe665f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -245,26 +245,26 @@
           "primaryKey": false,
           "notNull": false
         },
-        "role": {
-          "name": "role",
+        "phone_number": {
+          "name": "phone_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_role": {
+          "name": "user_role",
           "type": "user_role",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'groomer'"
-        },
-        "phone_number": {
-          "name": "phone_number",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": false
+          "default": "'CANDIDATE'"
         },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": true
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -322,7 +322,7 @@
           "name": "users_role_idx",
           "columns": [
             {
-              "expression": "role",
+              "expression": "user_role",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -346,49 +346,43 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.verification_tokens": {
-      "name": "verification_tokens",
-      "schema": "",
-      "columns": {
-        "identifier": {
-          "name": "identifier",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "token": {
-          "name": "token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "expires": {
-          "name": "expires",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "verification_tokens_identifier_token_pk": {
-          "name": "verification_tokens_identifier_token_pk",
-          "columns": ["identifier", "token"]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
     }
   },
   "enums": {
+    "public.assessment_outcome": {
+      "name": "assessment_outcome",
+      "schema": "public",
+      "values": ["PASS", "FAIL"]
+    },
+    "public.assessment_type": {
+      "name": "assessment_type",
+      "schema": "public",
+      "values": ["PRE_ASSESSMENT", "POST_ASSESSMENT"]
+    },
+    "public.candidate_status": {
+      "name": "candidate_status",
+      "schema": "public",
+      "values": [
+        "NEW",
+        "PRE_ASSESSMENT_PENDING",
+        "PRE_ASSESSMENT_COMPLETED",
+        "ASSESSMENT_PASSED",
+        "ASSESSMENT_FAILED",
+        "GROOMING_IN_PROGRESS",
+        "GROOMING_COMPLETED",
+        "POST_ASSESSMENT_PENDING",
+        "POST_ASSESSMENT_COMPLETED",
+        "CLIENT_INTERVIEW_SCHEDULED",
+        "CLIENT_INTERVIEW_FAILED",
+        "RE_GROOMING_SCHEDULED",
+        "PLACED",
+        "TERMINATED"
+      ]
+    },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": ["manager", "assessor", "groomer", "candidate"]
+      "values": ["PROJECT MANAGER", "ASSOCIATE", "ADMIN", "CANDIDATE"]
     }
   },
   "schemas": {},

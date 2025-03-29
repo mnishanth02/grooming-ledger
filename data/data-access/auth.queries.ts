@@ -9,7 +9,7 @@ import {
   ForgotPasswordSchema,
   ResetPasswordSchema,
   SigninSchema,
-  SignupSchema,
+  type SignupSchemaType,
 } from "@/lib/validator/auth-validtor";
 import type { ApiResponse } from "@/types/api";
 import { eq } from "drizzle-orm";
@@ -20,16 +20,14 @@ import { z } from "zod";
 // ******************* signupQuery **********************
 // ******************************************************
 export async function signupQuery(
-  input: unknown,
+  input: SignupSchemaType,
 ): Promise<ApiResponse<{ userId: string; message: string }>> {
   try {
-    // Validate input with Zod
-    const validatedInput = SignupSchema.parse(input);
-    const { email, password, name } = validatedInput;
-
     // Input sanitization
+    const { email, password, name, role } = input;
     const sanitizedEmail = email.toLowerCase().trim();
     const sanitizedName = name.trim();
+    const sanitizedRole = role.trim();
 
     // Validate password strength
     if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
@@ -55,13 +53,6 @@ export async function signupQuery(
       };
     }
 
-    // Hash password
-    // const hashedPassword = await argon2.hash(password, {
-    //   type: argon2.argon2id,
-    //   memoryCost: 65536,
-    //   timeCost: 3,
-    // });
-
     const hashedPassword = await hashPassword(password);
 
     const newUser = await db
@@ -70,6 +61,7 @@ export async function signupQuery(
         name: sanitizedName,
         email: sanitizedEmail,
         hashedPassword,
+        role: sanitizedRole as "PROJECT MANAGER" | "ASSOCIATE" | "ADMIN" | "CANDIDATE",
       })
       .returning({
         id: users.id,

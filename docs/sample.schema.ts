@@ -17,7 +17,7 @@ import {
 // -------------------------
 // ENUMS (MVP Only)
 // -------------------------
-export const userRoleEnum = pgEnum("user_role", ["PROJECT_MANAGER", "ASSOCIATE", "ADMIN"]); // Keep ADMIN for management
+export const userRoleEnum = pgEnum("user_role", ["PROJECT MANAGER", "ASSOCIATE", "ADMIN"]); // Keep ADMIN for management
 
 export const candidateStatusEnum = pgEnum("candidate_status", [
   "NEW",
@@ -73,32 +73,6 @@ export const accounts = pgTable(
   (account) => ({
     compoundKey: primaryKey(account.provider, account.providerAccountId),
     userIdIdx: index("account_userId_idx").on(account.userId), // Added index
-  }),
-);
-
-export const sessions = pgTable(
-  "session",
-  {
-    sessionToken: text("sessionToken").notNull().primaryKey(),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (session) => ({
-    userIdIdx: index("session_userId_idx").on(session.userId), // Added index
-  }),
-);
-
-export const verificationTokens = pgTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { mode: "date" }).notNull(),
-  },
-  (vt) => ({
-    compoundKey: primaryKey(vt.identifier, vt.token),
   }),
 );
 
@@ -246,7 +220,6 @@ export const groomingLogs = pgTable(
 export const usersRelations = relations(users, ({ one, many }) => ({
   // Auth.js relations
   accounts: many(accounts),
-  sessions: many(sessions),
 
   // Link to app-specific profile
   profile: one(userProfiles, { fields: [users.id], references: [userProfiles.userId] }),

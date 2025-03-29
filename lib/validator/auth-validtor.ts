@@ -9,7 +9,18 @@ export const SigninSchema = z.object({
 
 export const SignupSchema = z.object({
   name: z.string().min(3, { message: "Name too short (min 3 chars)" }),
-  email: z.string().nonempty("Please enter you email").email({ message: "Invalid email format" }),
+  // TODO: Add email validation to allow only pwc.com email. domain is not required
+
+  email: z
+    .string()
+    .nonempty("Please enter your email")
+    .email({ message: "Invalid email format" })
+    .refine((email) => email.endsWith("@pwc.com"), {
+      message: "Only PwC email addresses are allowed",
+    }),
+  role: z
+    .enum(["PROJECT MANAGER", "ASSOCIATE", "ADMIN", "CANDIDATE"], { message: "Invalid role" })
+    .default("ASSOCIATE"),
   password: z
     .string()
     .nonempty()

@@ -1,6 +1,7 @@
 "use client";
 
 import { signup } from "@/data/actions/auth.actions";
+import { userRoleEnum } from "@/drizzle/schema";
 import { SignupSchema, type SignupSchemaType } from "@/lib/validator/auth-validtor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -10,9 +11,10 @@ import { type FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import AppDialog from "../common/app-dialog";
+import { InputWithLabel } from "../common/input-with-label";
+import { SelectWithLabel } from "../common/select-with-label";
 import { Button } from "../ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Input } from "../ui/input";
+import { Form } from "../ui/form";
 
 export const SignUpForm: FC = () => {
   const router = useRouter();
@@ -25,6 +27,7 @@ export const SignUpForm: FC = () => {
     defaultValues: {
       name: "",
       email: "",
+      role: "CANDIDATE",
       password: "",
     },
     mode: "onSubmit",
@@ -67,64 +70,40 @@ export const SignUpForm: FC = () => {
           )}
 
           <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter your name"
-                      type="text"
-                      autoComplete="name"
-                      className="h-11"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <InputWithLabel
+              fieldTitle="Name"
+              nameInSchema="name"
+              placeholder="Enter your name"
+              type="text"
+              autoComplete="name"
+            />
+            <InputWithLabel
+              fieldTitle="Email"
+              nameInSchema="email"
+              placeholder="Enter your email"
+              type="email"
+              autoComplete="email"
             />
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter your email"
-                      type="email"
-                      autoComplete="email"
-                      className="h-11"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <InputWithLabel
+              fieldTitle="Password"
+              nameInSchema="password"
+              placeholder="Create a password"
+              type="password"
+              autoComplete="new-password"
             />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Create a password"
-                      type="password"
-                      autoComplete="new-password"
-                      className="h-11"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <SelectWithLabel
+              fieldTitle="Role"
+              nameInSchema="role"
+              placeholder="Select a role"
+              options={userRoleEnum.enumValues
+                .filter((role) => role !== "ADMIN")
+                .map((role) => ({
+                  value: role,
+                  label: role,
+                }))}
+              className="w-60 md:w-full"
             />
           </div>
 

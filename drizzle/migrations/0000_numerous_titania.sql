@@ -1,4 +1,7 @@
-CREATE TYPE "public"."user_role" AS ENUM('manager', 'assessor', 'groomer', 'candidate');--> statement-breakpoint
+CREATE TYPE "public"."assessment_outcome" AS ENUM('PASS', 'FAIL');--> statement-breakpoint
+CREATE TYPE "public"."assessment_type" AS ENUM('PRE_ASSESSMENT', 'POST_ASSESSMENT');--> statement-breakpoint
+CREATE TYPE "public"."candidate_status" AS ENUM('NEW', 'PRE_ASSESSMENT_PENDING', 'PRE_ASSESSMENT_COMPLETED', 'ASSESSMENT_PASSED', 'ASSESSMENT_FAILED', 'GROOMING_IN_PROGRESS', 'GROOMING_COMPLETED', 'POST_ASSESSMENT_PENDING', 'POST_ASSESSMENT_COMPLETED', 'CLIENT_INTERVIEW_SCHEDULED', 'CLIENT_INTERVIEW_FAILED', 'RE_GROOMING_SCHEDULED', 'PLACED', 'TERMINATED');--> statement-breakpoint
+CREATE TYPE "public"."user_role" AS ENUM('PROJECT MANAGER', 'ASSOCIATE', 'ADMIN', 'CANDIDATE');--> statement-breakpoint
 CREATE TABLE "accounts" (
 	"user_id" text NOT NULL,
 	"type" text NOT NULL,
@@ -30,20 +33,13 @@ CREATE TABLE "users" (
 	"image" text,
 	"hashed_password" text,
 	"email_verified" timestamp,
-	"role" "user_role" DEFAULT 'groomer' NOT NULL,
-	"phone_number" varchar(20),
-	"is_active" boolean DEFAULT true NOT NULL,
+	"phone_number" text,
+	"user_role" "user_role" DEFAULT 'CANDIDATE' NOT NULL,
+	"is_active" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"deleted_at" timestamp,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
-CREATE TABLE "verification_tokens" (
-	"identifier" text NOT NULL,
-	"token" text NOT NULL,
-	"expires" timestamp NOT NULL,
-	CONSTRAINT "verification_tokens_identifier_token_pk" PRIMARY KEY("identifier","token")
 );
 --> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -53,4 +49,4 @@ CREATE INDEX "user_audit_logs_action_idx" ON "user_audit_logs" USING btree ("act
 CREATE INDEX "user_audit_logs_created_at_idx" ON "user_audit_logs" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "users_name_idx" ON "users" USING btree ("name");--> statement-breakpoint
 CREATE INDEX "users_email_idx" ON "users" USING btree ("email");--> statement-breakpoint
-CREATE INDEX "users_role_idx" ON "users" USING btree ("role");
+CREATE INDEX "users_role_idx" ON "users" USING btree ("user_role");

@@ -13,7 +13,6 @@ import {
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { userRoleEnum } from "./enums";
-
 // ----------------------- USERS & AUTHENTICATION -----------------------
 export const users = pgTable(
   "users",
@@ -26,9 +25,9 @@ export const users = pgTable(
     image: text("image"),
     hashedPassword: text("hashed_password"),
     emailVerified: timestamp("email_verified", { mode: "date" }),
-    role: userRoleEnum("role").default("groomer").notNull(),
-    phoneNumber: varchar("phone_number", { length: 20 }),
-    isActive: boolean("is_active").default(true).notNull(),
+    phoneNumber: text("phone_number"),
+    role: userRoleEnum("user_role").default("CANDIDATE").notNull(),
+    isActive: boolean("is_active").default(false).notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { mode: "date" }), // For soft delete
@@ -121,17 +120,14 @@ export const userAuditLogsRelations = relations(userAuditLogs, ({ one }) => ({
  */
 
 export const usersSchema = createSelectSchema(users);
-export const accountsSchema = createSelectSchema(accounts);
 export const userAuditLogsSchema = createSelectSchema(userAuditLogs);
 
 /************** Insert SChema ****************/
 
 export const usersInsertSchema = createInsertSchema(users);
-export const accountsInsertSchema = createInsertSchema(accounts);
 export const userAuditLogsInsertSchema = createInsertSchema(userAuditLogs);
 
 /************** Update SChema ****************/
 
 export const usersUpdateSchema = createUpdateSchema(users);
-export const accountsUpdateSchema = createUpdateSchema(accounts);
 export const userAuditLogsUpdateSchema = createUpdateSchema(userAuditLogs);

@@ -1,5 +1,17 @@
 //  Enums
-export { userRoleEnum } from "./schema/enums";
+export {
+  userRoleEnum,
+  candidateStatusEnum,
+  assessmentTypeEnum,
+  assessmentOutcomeEnum,
+} from "./schema/enums";
 
 //  Tables
-export { users, accounts, userAuditLogs } from "./schema/auth";
+export {
+  users,
+  accounts,
+  userAuditLogs,
+  accountsRelations,
+  usersRelations,
+  userAuditLogsRelations,
+} from "./schema/auth";

@@ -12,6 +12,7 @@ import { eq, getTableColumns } from "drizzle-orm";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import type { z } from "zod";
+
 export default {
   providers: [
     Credentials({
@@ -79,18 +80,18 @@ export default {
 
       // Protected routes that require authentication
       const protectedPaths = [
-        "/profile",
-        "/orders",
-        "/cart",
-        "/checkout",
-        "/wishlist",
-        "/settings",
+        // "/profile",
+        // "/orders",
+        // "/cart",
+        // "/checkout",
+        // "/wishlist",
+        // "/settings",
       ];
 
       const isProtectedPath = protectedPaths.some((path) => nextUrl.pathname.startsWith(path));
 
       // Admin/staff only routes
-      const adminPaths = ["/admin", "/dashboard"];
+      const adminPaths = ["/admin"];
       const isAdminPath = adminPaths.some((path) => nextUrl.pathname.startsWith(path));
 
       if (isProtectedPath || isAdminPath) {
@@ -101,7 +102,7 @@ export default {
         // For admin paths, check role
         if (isAdminPath) {
           const userRole = auth?.user?.role;
-          return userRole === "manager" || userRole === "assessor" || userRole === "groomer";
+          return userRole === "PROJECT MANAGER" || userRole === "ASSOCIATE" || userRole === "ADMIN";
         }
 
         return true;
@@ -129,6 +130,7 @@ export default {
             role: true,
             isActive: true,
             name: true,
+            email: true,
           },
         });
 
@@ -137,6 +139,7 @@ export default {
           token.name = dbUser.name;
           token.role = dbUser.role;
           token.isActive = dbUser.isActive ?? false;
+          token.email = dbUser.email;
         }
       }
 
@@ -150,8 +153,9 @@ export default {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "manager" | "assessor" | "groomer" | "candidate";
+        session.user.role = token.role as "PROJECT MANAGER" | "ASSOCIATE" | "ADMIN";
         session.user.isActive = token.isActive as boolean;
+        session.user.email = token.email as string;
       }
 
       return session;
