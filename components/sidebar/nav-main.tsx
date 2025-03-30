@@ -76,7 +76,7 @@ export function NavMain({
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuSubButton
-                  className={cn(isActive && "bg-accent text-accent-foreground", "py-4")}
+                  className={cn(isActive && "bg-accent text-accent-foreground", "h-11 py-4")}
                   asChild
                 >
                   <Link href={item.url} className="cursor-pointer">

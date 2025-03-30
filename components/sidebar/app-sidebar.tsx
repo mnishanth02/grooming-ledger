@@ -13,7 +13,7 @@ import type { TeamType } from "@/drizzle/schema/grooming";
 import { BarChart, GalleryHorizontalEnd, LayoutDashboard, Settings2, Users } from "lucide-react";
 import type { User } from "next-auth";
 import type * as React from "react";
-import { TeamSwitcher } from "./store-switcher";
+import { TeamSwitcher } from "./team-switcher";
 
 const getDashboardNavItems = (teamId: string) => [
   {
