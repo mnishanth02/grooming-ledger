@@ -15,6 +15,20 @@
       "when": 1743253802818,
       "tag": "0001_typical_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743313000166,
+      "tag": "0002_brown_smasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1743339362999,
+      "tag": "0003_puzzling_black_crow",
+      "breakpoints": true
     }
   ]
 }

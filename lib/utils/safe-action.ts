@@ -1,4 +1,5 @@
 import { env } from "@/data/env/server-env";
+import { validateSpecificTeam } from "@/data/helper/teams.helper";
 import { DEFAULT_SERVER_ERROR_MESSAGE, createSafeActionClient } from "next-safe-action";
 import { z } from "zod";
 import { auth } from "../auth";
@@ -52,3 +53,30 @@ export const authActionClient = actionClient
       },
     });
   });
+
+// Action Client with auth and team check
+export const teamActionClient = authActionClient.use(async ({ ctx, next, clientInput }) => {
+  // Type-safe check for storeId in input
+  const inputObj = clientInput as { teamId?: string };
+  const teamId = inputObj.teamId;
+
+  if (!teamId) {
+    throw new ActionError("Team ID is required for this action");
+  }
+
+  // Validate store access
+  const team = await validateSpecificTeam(teamId);
+
+  if (!team?.id) {
+    throw new ActionError("Team not found");
+  }
+
+  // Pass the validated store to the next middleware/action
+  return next({
+    ctx: {
+      ...ctx,
+      team,
+      teamId,
+    },
+  });
+});

@@ -24,10 +24,10 @@ export async function signupQuery(
 ): Promise<ApiResponse<{ userId: string; message: string }>> {
   try {
     // Input sanitization
-    const { email, password, name, role } = input;
+    const { email, password, name, role, teamId } = input;
     const sanitizedEmail = email.toLowerCase().trim();
     const sanitizedName = name.trim();
-    const sanitizedRole = role.trim();
+    const sanitizedRole = role.trim() as "PROJECT MANAGER" | "ASSOCIATE" | "ADMIN" | "CANDIDATE";
 
     // Validate password strength
     if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
@@ -61,7 +61,10 @@ export async function signupQuery(
         name: sanitizedName,
         email: sanitizedEmail,
         hashedPassword,
-        role: sanitizedRole as "PROJECT MANAGER" | "ASSOCIATE" | "ADMIN" | "CANDIDATE",
+        role: sanitizedRole,
+        isActive: true,
+        emailVerified: new Date(),
+        teamId: teamId ?? null,
       })
       .returning({
         id: users.id,
@@ -363,6 +366,27 @@ export async function resetPasswordQuery(
       };
     }
 
+    return {
+      success: false,
+      error: {
+        code: 500,
+        message: error instanceof Error ? error.message : "An unknown error occurred",
+      },
+    };
+  }
+}
+
+//  get all users by teamId
+export async function getAllUsersByTeamId(
+  teamId: string,
+): Promise<ApiResponse<(typeof users.$inferSelect)[]>> {
+  try {
+    const usersData = await db.select().from(users).where(eq(users.teamId, teamId));
+    return {
+      success: true,
+      data: usersData,
+    };
+  } catch (error) {
     return {
       success: false,
       error: {

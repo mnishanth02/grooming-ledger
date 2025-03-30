@@ -2,7 +2,6 @@ import { findUserByEmail } from "@/data/data-access/auth.queries";
 import { env } from "@/data/env/server-env";
 import db from "@/drizzle/db";
 import * as schema from "@/drizzle/schema";
-import type { usersInsertSchema } from "@/drizzle/schema/auth";
 import { OAuthAccountAlreadyLinkedError } from "@/lib/error";
 import { DEFAULT_SIGNIN_REDIRECT } from "@/lib/routes";
 import { verifyPassword } from "@/lib/utils/hash";
@@ -11,7 +10,6 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq, getTableColumns } from "drizzle-orm";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import type { z } from "zod";
 
 export default {
   providers: [
@@ -59,9 +57,11 @@ export default {
       // const hasDefaultId = getTableColumns(schema.users)["id"]["hasDefault"];
       const hasDefaultId = getTableColumns(schema.users).id.hasDefault;
 
-      const newUser: z.infer<typeof usersInsertSchema> = {
+      const newUser = {
         ...insertData,
         isActive: true,
+        emailVerified: new Date(),
+        teamId: insertData.teamId ?? null,
       };
 
       const dbUser = await db
@@ -125,13 +125,6 @@ export default {
       if (user?.id) {
         const dbUser = await db.query.users.findFirst({
           where: eq(schema.users.id, user.id),
-          columns: {
-            id: true,
-            role: true,
-            isActive: true,
-            name: true,
-            email: true,
-          },
         });
 
         if (dbUser) {
@@ -140,6 +133,7 @@ export default {
           token.role = dbUser.role;
           token.isActive = dbUser.isActive ?? false;
           token.email = dbUser.email;
+          token.teamId = dbUser.teamId || null;
         }
       }
 
@@ -156,6 +150,7 @@ export default {
         session.user.role = token.role as "PROJECT MANAGER" | "ASSOCIATE" | "ADMIN";
         session.user.isActive = token.isActive as boolean;
         session.user.email = token.email as string;
+        session.user.teamId = token.teamId as string;
       }
 
       return session;

@@ -9,8 +9,6 @@ export const SigninSchema = z.object({
 
 export const SignupSchema = z.object({
   name: z.string().min(3, { message: "Name too short (min 3 chars)" }),
-  // TODO: Add email validation to allow only pwc.com email. domain is not required
-
   email: z
     .string()
     .nonempty("Please enter your email")
@@ -32,6 +30,7 @@ export const SignupSchema = z.object({
       (value) => /^[a-zA-Z0-9_.-]*$/.test(value ?? ""),
       "Use only letters, numbers, and common symbols",
     ),
+  teamId: z.string().optional(),
 });
 
 export const ForgotPasswordSchema = z.object({

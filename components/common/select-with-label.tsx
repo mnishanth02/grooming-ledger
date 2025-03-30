@@ -55,7 +55,7 @@ export function SelectWithLabel<S>({
               <SelectTrigger
                 className={cn(
                   className,
-                  "cursor-pointer",
+                  "w-full cursor-pointer",
                   (isLoading || disabled) && "cursor-not-allowed opacity-50",
                 )}
               >

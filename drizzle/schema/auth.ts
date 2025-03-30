@@ -8,11 +8,13 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { userRoleEnum } from "./enums";
+import { candidates, teams } from "./grooming";
 // ----------------------- USERS & AUTHENTICATION -----------------------
 export const users = pgTable(
   "users",
@@ -21,21 +23,26 @@ export const users = pgTable(
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
     name: text("name"),
-    email: text("email").unique().notNull(),
+    email: text("email").notNull(),
     image: text("image"),
     hashedPassword: text("hashed_password"),
+    teamId: text("team_id").references(() => teams.id, { onDelete: "set null" }),
     emailVerified: timestamp("email_verified", { mode: "date" }),
     phoneNumber: text("phone_number"),
     role: userRoleEnum("user_role").default("CANDIDATE").notNull(),
     isActive: boolean("is_active").default(false).notNull(),
+    designation: text("designation"),
+    department: text("department"),
+    employeeId: text("employee_id"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { mode: "date" }), // For soft delete
   },
   (table) => [
     index("users_name_idx").on(table.name),
-    index("users_email_idx").on(table.email),
+    uniqueIndex("users_email_idx").on(table.email),
     index("users_role_idx").on(table.role),
+    index("users_team_id_idx").on(table.teamId),
   ],
 );
 
@@ -94,8 +101,15 @@ export const userAuditLogs = pgTable(
  */
 
 // Relations for users
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ many, one }) => ({
   accounts: many(accounts),
+  team: one(teams, {
+    fields: [users.teamId],
+    references: [teams.id],
+  }),
+
+  candidatesAssignedAsAssessor: many(candidates, { relationName: "AssessorCandidates" }),
+  candidatesAssignedAsGroomer: many(candidates, { relationName: "GroomerCandidates" }),
 }));
 
 // Relations for accounts

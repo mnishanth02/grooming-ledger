@@ -1,28 +1,28 @@
 import "server-only";
 
 import db from "@/drizzle/db";
-import { type TeamType, teams } from "@/drizzle/schema/grooming";
+import { candidates } from "@/drizzle/schema/grooming";
 import type { ApiResponse } from "@/types/api";
 import { and, eq, isNull } from "drizzle-orm";
 
 // ******************************************************
-// *******************  createTeamQuery ****************
+// *******************  createCandidateQuery ****************
 // ******************************************************
-export async function createTeamQuery(
-  data: typeof teams.$inferInsert,
-): Promise<ApiResponse<TeamType>> {
+export async function createCandidateQuery(
+  data: typeof candidates.$inferInsert,
+): Promise<ApiResponse<typeof candidates.$inferSelect>> {
   try {
-    const team = await db
-      .insert(teams)
+    const candidate = await db
+      .insert(candidates)
       .values(data)
       .returning()
       .then((res) => res[0] ?? null);
 
-    if (team) {
+    if (candidate) {
       return {
         success: true,
-        data: team as TeamType,
-        message: "Team created successfully",
+        data: candidate,
+        message: "Candidate created successfully",
       };
     }
 
@@ -30,7 +30,7 @@ export async function createTeamQuery(
       success: false,
       error: {
         code: 404,
-        message: "Store creation failed",
+        message: "Candidate creation failed",
       },
     };
   } catch (error) {
@@ -45,25 +45,25 @@ export async function createTeamQuery(
 }
 
 // ******************************************************
-// *******************  updateTeamQuery ****************
+// *******************  updateCandidateQuery ****************
 // ******************************************************
-export async function updateTeamQuery(
-  teamId: string,
-  data: typeof teams.$inferInsert,
-): Promise<ApiResponse<TeamType>> {
+export async function updateCandidateQuery(
+  candidateId: string,
+  data: Partial<typeof candidates.$inferInsert>,
+): Promise<ApiResponse<typeof candidates.$inferSelect>> {
   try {
-    const updatedTeam = await db
-      .update(teams)
+    const updatedCandidate = await db
+      .update(candidates)
       .set(data)
-      .where(and(eq(teams.id, teamId), isNull(teams.deletedAt)))
+      .where(and(eq(candidates.id, candidateId), isNull(candidates.deletedAt)))
       .returning()
       .then((res) => res[0] ?? null);
 
-    if (updatedTeam) {
+    if (updatedCandidate) {
       return {
         success: true,
-        data: updatedTeam as TeamType,
-        message: "Team updated successfully",
+        data: updatedCandidate,
+        message: "Candidate updated successfully",
       };
     }
 
@@ -71,7 +71,7 @@ export async function updateTeamQuery(
       success: false,
       error: {
         code: 404,
-        message: "Team not found",
+        message: "Candidate not found",
       },
     };
   } catch (error) {
@@ -86,23 +86,24 @@ export async function updateTeamQuery(
 }
 
 // ******************************************************
-// *******************  deleteTeamQuery ****************
+// *******************  deleteCandidateQuery ****************
 // ******************************************************
-export async function deleteTeamQuery(teamId: string): Promise<ApiResponse<TeamType>> {
+export async function deleteCandidateQuery(
+  candidateId: string,
+): Promise<ApiResponse<typeof candidates.$inferSelect>> {
   try {
-    // Validate inputs with Zod
-    const deletedTeam = await db
-      .update(teams)
+    const deletedCandidate = await db
+      .update(candidates)
       .set({ deletedAt: new Date() })
-      .where(eq(teams.id, teamId))
+      .where(eq(candidates.id, candidateId))
       .returning()
       .then((res) => res[0] ?? null);
 
-    if (deletedTeam) {
+    if (deletedCandidate) {
       return {
         success: true,
-        data: deletedTeam as TeamType,
-        message: "Team deleted successfully",
+        data: deletedCandidate,
+        message: "Candidate deleted successfully",
       };
     }
 
@@ -110,7 +111,7 @@ export async function deleteTeamQuery(teamId: string): Promise<ApiResponse<TeamT
       success: false,
       error: {
         code: 404,
-        message: "Team not found",
+        message: "Candidate not found",
       },
     };
   } catch (error) {
@@ -125,21 +126,59 @@ export async function deleteTeamQuery(teamId: string): Promise<ApiResponse<TeamT
 }
 
 // ******************************************************
-// *******************  getTeamByIdQuery ****************
+// *******************  getCandidateByIdQuery ****************
 // ******************************************************
-export async function getTeamByIdQuery(
+export async function getCandidateByIdQuery(
+  candidateId: string,
+): Promise<ApiResponse<typeof candidates.$inferSelect>> {
+  try {
+    const candidate = await db
+      .select()
+      .from(candidates)
+      .where(and(eq(candidates.id, candidateId), isNull(candidates.deletedAt)))
+      .then((res) => res[0] ?? null);
+
+    if (candidate) {
+      return {
+        success: true,
+        data: candidate,
+      };
+    }
+
+    return {
+      success: false,
+      error: {
+        code: 404,
+        message: "Candidate not found",
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        code: 500,
+        message: error instanceof Error ? error.message : "An unknown error occurred",
+      },
+    };
+  }
+}
+
+// ******************************************************
+// *******************  getAllCandidatesByTeamIdQuery ****************
+// ******************************************************
+export async function getAllCandidatesByTeamIdQuery(
   teamId: string,
-  userId: string,
-): Promise<ApiResponse<TeamType>> {
+): Promise<ApiResponse<(typeof candidates.$inferSelect)[]>> {
   try {
-    const team = await db.query.teams.findFirst({
-      where: and(eq(teams.id, teamId), eq(teams.userId, userId), isNull(teams.deletedAt)),
-    });
+    const allCandidates = await db
+      .select()
+      .from(candidates)
+      .where(and(eq(candidates.teamId, teamId), isNull(candidates.deletedAt)));
 
-    if (team) {
+    if (allCandidates && allCandidates.length > 0) {
       return {
         success: true,
-        data: team as TeamType,
+        data: allCandidates,
       };
     }
 
@@ -147,7 +186,7 @@ export async function getTeamByIdQuery(
       success: false,
       error: {
         code: 404,
-        message: "Team not found",
+        message: "No candidates found",
       },
     };
   } catch (error) {
@@ -162,18 +201,21 @@ export async function getTeamByIdQuery(
 }
 
 // ******************************************************
-// *******************  getTeamByUserIdQuery ****************
+// *******************  getAllCandidatesByGroomerIdQuery ****************
 // ******************************************************
-export async function getTeamByUserIdQuery(userId: string): Promise<ApiResponse<TeamType>> {
+export async function getAllCandidatesByGroomerIdQuery(
+  groomerId: string,
+): Promise<ApiResponse<(typeof candidates.$inferSelect)[]>> {
   try {
-    const team = await db.query.teams.findFirst({
-      where: and(eq(teams.userId, userId), isNull(teams.deletedAt)),
-    });
+    const allCandidates = await db
+      .select()
+      .from(candidates)
+      .where(and(eq(candidates.assignedGroomerId, groomerId), isNull(candidates.deletedAt)));
 
-    if (team) {
+    if (allCandidates && allCandidates.length > 0) {
       return {
         success: true,
-        data: team as TeamType,
+        data: allCandidates,
       };
     }
 
@@ -181,7 +223,7 @@ export async function getTeamByUserIdQuery(userId: string): Promise<ApiResponse<
       success: false,
       error: {
         code: 404,
-        message: "Team not found",
+        message: "No candidates found",
       },
     };
   } catch (error) {
@@ -196,18 +238,21 @@ export async function getTeamByUserIdQuery(userId: string): Promise<ApiResponse<
 }
 
 // ******************************************************
-// *******************  getAllTeamByUserIdQuery ****************
+// *******************  getAllCandidatesByAssessorIdQuery ****************
 // ******************************************************
-export async function getAllTeamByUserIdQuery(userId: string): Promise<ApiResponse<TeamType[]>> {
+export async function getAllCandidatesByAssessorIdQuery(
+  assessorId: string,
+): Promise<ApiResponse<(typeof candidates.$inferSelect)[]>> {
   try {
-    const allTeamsData = await db.query.teams.findMany({
-      where: and(eq(teams.userId, userId), isNull(teams.deletedAt)),
-    });
+    const allCandidates = await db
+      .select()
+      .from(candidates)
+      .where(and(eq(candidates.assignedAssessorId, assessorId), isNull(candidates.deletedAt)));
 
-    if (allTeamsData && allTeamsData.length > 0) {
+    if (allCandidates && allCandidates.length > 0) {
       return {
         success: true,
-        data: allTeamsData as TeamType[],
+        data: allCandidates,
       };
     }
 
@@ -215,39 +260,7 @@ export async function getAllTeamByUserIdQuery(userId: string): Promise<ApiRespon
       success: false,
       error: {
         code: 404,
-        message: "No teams found",
-      },
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: {
-        code: 500,
-        message: error instanceof Error ? error.message : "An unknown error occurred",
-      },
-    };
-  }
-}
-
-//  getAllTeams
-export async function getAllTeams(): Promise<ApiResponse<TeamType[]>> {
-  try {
-    const allTeams = await db.query.teams.findMany({
-      where: isNull(teams.deletedAt),
-    });
-
-    if (allTeams && allTeams.length > 0) {
-      return {
-        success: true,
-        data: allTeams as TeamType[],
-      };
-    }
-
-    return {
-      success: false,
-      error: {
-        code: 404,
-        message: "No teams found",
+        message: "No candidates found",
       },
     };
   } catch (error) {

@@ -13,6 +13,7 @@ declare module "next-auth" {
       role?: (typeof users.$inferSelect)["role"];
       isActive?: (typeof users.$inferSelect)["isActive"];
       emailVerified?: (typeof users.$inferSelect)["emailVerified"];
+      teamId?: (typeof users.$inferSelect)["teamId"];
       /**
        * By default, TypeScript merges new interface properties and overwrites existing ones.
        * In this case, the default session user properties will be overwritten,
@@ -26,6 +27,7 @@ declare module "next-auth" {
     emailVerified: (typeof users.$inferSelect)["emailVerified"];
     role: (typeof users.$inferSelect)["role"];
     isActive: (typeof users.$inferSelect)["isActive"];
+    teamId?: (typeof users.$inferSelect)["teamId"];
   }
 }
 
@@ -36,6 +38,7 @@ declare module "next-auth/jwt" {
     // idToken?: string;
     role?: (typeof users.$inferSelect)["role"];
     isActive?: (typeof users.$inferSelect)["isActive"];
+    teamId?: (typeof users.$inferSelect)["teamId"];
   }
 }
 
@@ -46,5 +49,6 @@ declare module "@auth/core/adapters" {
     emailVerified: (typeof users.$inferSelect)["emailVerified"];
     role: (typeof users.$inferSelect)["role"];
     isActive: (typeof users.$inferSelect)["isActive"];
+    teamId?: (typeof users.$inferSelect)["teamId"];
   }
 }

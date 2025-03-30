@@ -2,6 +2,7 @@
 
 import { signup } from "@/data/actions/auth.actions";
 import { userRoleEnum } from "@/drizzle/schema";
+import type { TeamType } from "@/drizzle/schema/grooming";
 import { SignupSchema, type SignupSchemaType } from "@/lib/validator/auth-validtor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -16,19 +17,22 @@ import { SelectWithLabel } from "../common/select-with-label";
 import { Button } from "../ui/button";
 import { Form } from "../ui/form";
 
-export const SignUpForm: FC = () => {
+export const SignUpForm: FC<{ teams: TeamType[] }> = ({ teams }) => {
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  console.log("[] teams", teams);
 
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
       name: "",
       email: "",
-      role: "CANDIDATE",
+      role: "ASSOCIATE",
       password: "",
+      teamId: "",
     },
     mode: "onSubmit",
   });
@@ -105,6 +109,18 @@ export const SignUpForm: FC = () => {
                 }))}
               className="w-60 md:w-full"
             />
+
+            {teams.length > 0 && form.watch("role") === "ASSOCIATE" && (
+              <SelectWithLabel
+                fieldTitle="Team"
+                nameInSchema="teamId"
+                placeholder="Select a team"
+                options={teams.map((team) => ({
+                  value: team.id,
+                  label: team.name,
+                }))}
+              />
+            )}
           </div>
 
           <Button type="submit" className="h-11 w-full" disabled={isSubmitting}>
