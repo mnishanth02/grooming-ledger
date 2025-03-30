@@ -1,6 +1,7 @@
 import "server-only";
 
 import db from "@/drizzle/db";
+import type { users } from "@/drizzle/schema";
 import { candidates } from "@/drizzle/schema/grooming";
 import type { ApiResponse } from "@/types/api";
 import { and, eq, isNull } from "drizzle-orm";
@@ -166,14 +167,23 @@ export async function getCandidateByIdQuery(
 // ******************************************************
 // *******************  getAllCandidatesByTeamIdQuery ****************
 // ******************************************************
+
+export type CandidateWithAssessorAndGroomer = typeof candidates.$inferSelect & {
+  assignedAssessor: typeof users.$inferSelect;
+  assignedGroomer: typeof users.$inferSelect;
+};
+
 export async function getAllCandidatesByTeamIdQuery(
   teamId: string,
-): Promise<ApiResponse<(typeof candidates.$inferSelect)[]>> {
+): Promise<ApiResponse<CandidateWithAssessorAndGroomer[]>> {
   try {
-    const allCandidates = await db
-      .select()
-      .from(candidates)
-      .where(and(eq(candidates.teamId, teamId), isNull(candidates.deletedAt)));
+    const allCandidates = await db.query.candidates.findMany({
+      where: and(eq(candidates.teamId, teamId), isNull(candidates.deletedAt)),
+      with: {
+        assignedAssessor: true,
+        assignedGroomer: true,
+      },
+    });
 
     if (allCandidates && allCandidates.length > 0) {
       return {

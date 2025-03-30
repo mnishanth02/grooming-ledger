@@ -29,6 +29,13 @@
       "when": 1743339362999,
       "tag": "0003_puzzling_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1743353322425,
+      "tag": "0004_giant_kang",
+      "breakpoints": true
     }
   ]
 }

@@ -1,12 +1,15 @@
 "use client";
+import { DatePickerWithLabel } from "@/app/components/common/date-picker-with-label";
 import { InputWithLabel } from "@/components/common/input-with-label";
 import PageHeading from "@/components/common/page-heading";
+import { SelectWithLabel } from "@/components/common/select-with-label";
 import { TextareaWithLabel } from "@/components/common/textarea-with-label";
 import { AlertModal } from "@/components/modals/alert-modal";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { createCandidate, deleteCandidate, updateCandidate } from "@/data/actions/candidate.action";
+import type { UserType } from "@/drizzle/schema/auth";
 import type { CandidateType } from "@/drizzle/schema/grooming";
 import { CandidateSchema, type CandidateSchemaType } from "@/lib/validator/ui-validator";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +22,10 @@ import { toast } from "sonner";
 
 interface Candidaterops {
   initialData: CandidateType | null;
+  associates: UserType[] | null;
 }
 
-const CandidateForm = ({ initialData }: Candidaterops) => {
+const CandidateForm = ({ initialData, associates }: Candidaterops) => {
   const router = useRouter();
   const params = useParams();
 
@@ -41,7 +45,6 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
           email: initialData.email,
           phone: initialData.phone ?? "",
           onboardingDate: initialData.onboardingDate,
-          teamId: initialData.teamId,
           yearsOfExperience: initialData.yearsOfExperience ?? 0,
           assignedAssessorId: initialData.assignedAssessorId ?? "",
           assignedGroomerId: initialData.assignedGroomerId ?? "",
@@ -52,7 +55,6 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
           email: "",
           phone: "",
           onboardingDate: "",
-          teamId: "",
           yearsOfExperience: 0,
           assignedAssessorId: "",
           assignedGroomerId: "",
@@ -85,7 +87,7 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
     },
     onSuccess: (data) => {
       toast.success(data.data?.message || toastMessage);
-      router.push(`/admin/${params.storeId}/categories`);
+      router.push(`/admin/${params.teamId}/candidates`);
       router.refresh();
     },
     onError: (error) => {
@@ -103,8 +105,8 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
       setServerError(null);
     },
     onSuccess: (data) => {
-      toast.success(data.data?.message || "ategory deleted successfully");
-      router.push(`/admin/${params.storeId}/categories`);
+      toast.success(data.data?.message || "Candidate deleted successfully");
+      router.push(`/admin/${params.teamId}/candidates`);
     },
     onError: (error) => {
       if (error.error?.serverError) {
@@ -128,7 +130,7 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
       email: data.email,
       phone: data.phone,
       onboardingDate: data.onboardingDate,
-      yearsOfExperience: data.yearsOfExperience,
+      yearsOfExperience: Number(data.yearsOfExperience),
       resumeUrl: data.resumeUrl,
       designation: data.designation,
       assignedAssessorId: data.assignedAssessorId,
@@ -139,7 +141,7 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
     if (initialData) {
       await executeUpdate({
         ...submitData,
-        candidateId: initialData.id,
+        candidateId: initialData?.id || "",
       });
     } else {
       await executeCreate(submitData);
@@ -187,7 +189,7 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
               fieldTitle="Name"
               disabled={isUpdating || isDeleting}
               nameInSchema="name"
-              placeholder="Category Name"
+              placeholder="Candidate Name"
             />
 
             <InputWithLabel
@@ -200,17 +202,17 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
 
             <InputWithLabel
               type="number"
-              fieldTitle="Phone"
+              fieldTitle="Phone Number"
               disabled={isUpdating || isDeleting}
               nameInSchema="phone"
-              placeholder="Phone"
+              placeholder="Phone Number"
             />
 
-            <InputWithLabel
+            <DatePickerWithLabel
               fieldTitle="Onboarding Date"
               disabled={isUpdating || isDeleting}
               nameInSchema="onboardingDate"
-              placeholder="Onboarding Date"
+              placeholder="Select onboarding date"
             />
 
             <InputWithLabel
@@ -235,18 +237,30 @@ const CandidateForm = ({ initialData }: Candidaterops) => {
               placeholder="Designation"
             />
 
-            <InputWithLabel
-              fieldTitle="Assigned Assessor ID"
+            <SelectWithLabel
+              fieldTitle="Assessor Name"
               disabled={isUpdating || isDeleting}
               nameInSchema="assignedAssessorId"
-              placeholder="Assigned Assessor ID"
+              placeholder="Assign assessor"
+              options={
+                associates?.map((associate) => ({
+                  value: associate.id,
+                  label: associate.name,
+                })) ?? []
+              }
             />
 
-            <InputWithLabel
-              fieldTitle="Assigned Groomer ID"
+            <SelectWithLabel
+              fieldTitle="Groomer Name"
               disabled={isUpdating || isDeleting}
               nameInSchema="assignedGroomerId"
-              placeholder="Assigned Groomer ID"
+              placeholder="Assign groomer"
+              options={
+                associates?.map((associate) => ({
+                  value: associate.id,
+                  label: associate.name,
+                })) ?? []
+              }
             />
 
             <TextareaWithLabel

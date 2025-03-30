@@ -12,7 +12,7 @@ import {
   type SignupSchemaType,
 } from "@/lib/validator/auth-validtor";
 import type { ApiResponse } from "@/types/api";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { z } from "zod";
 
@@ -342,12 +342,6 @@ export async function resetPasswordQuery(
       };
     }
 
-    // const hashedPassword = await argon2.hash(password, {
-    //   type: argon2.argon2id,
-    //   memoryCost: 65536,
-    //   timeCost: 3,
-    // });
-
     const hashedPassword = await hashPassword(password);
 
     await db.update(users).set({ hashedPassword }).where(eq(users.email, email));
@@ -356,16 +350,6 @@ export async function resetPasswordQuery(
       success: true,
     };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        success: false,
-        error: {
-          code: 400,
-          message: `Validation error: ${error.errors.map((e) => e.message).join(", ")}`,
-        },
-      };
-    }
-
     return {
       success: false,
       error: {
@@ -381,7 +365,21 @@ export async function getAllUsersByTeamId(
   teamId: string,
 ): Promise<ApiResponse<(typeof users.$inferSelect)[]>> {
   try {
-    const usersData = await db.select().from(users).where(eq(users.teamId, teamId));
+    const usersData = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.teamId, teamId), isNull(users.deletedAt)));
+
+    if (usersData.length === 0) {
+      return {
+        success: false,
+        error: {
+          code: 404,
+          message: "No users found",
+        },
+      };
+    }
+
     return {
       success: true,
       data: usersData,

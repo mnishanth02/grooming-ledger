@@ -19,7 +19,7 @@ export const createCandidate = teamActionClient
     actionName: "createCandidate",
     requiresAuth: true,
   })
-  .schema(CandidateSchema)
+  .schema(CandidateSchema.extend({ teamId: z.string().min(1, "Team is required") }))
   .action(async ({ parsedInput }) => {
     // Convert Date to ISO string
     const candidateData = {

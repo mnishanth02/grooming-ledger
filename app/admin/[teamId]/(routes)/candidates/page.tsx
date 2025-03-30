@@ -18,8 +18,8 @@ const CandidatePage = async ({ params }: CandidatePageProps) => {
         name: item.name,
         status: item.status,
         email: item.email,
-        groomer: item.assignedGroomerId ?? "",
-        assessor: item.assignedAssessorId ?? "",
+        groomer: item.assignedGroomer?.name ?? "",
+        assessor: item.assignedAssessor?.name ?? "",
         onboardingDate: item.onboardingDate,
       }))
     : [];

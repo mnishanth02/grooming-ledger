@@ -145,3 +145,6 @@ export const userAuditLogsInsertSchema = createInsertSchema(userAuditLogs);
 
 export const usersUpdateSchema = createUpdateSchema(users);
 export const userAuditLogsUpdateSchema = createUpdateSchema(userAuditLogs);
+
+//  Types
+export type UserType = typeof users.$inferSelect;
