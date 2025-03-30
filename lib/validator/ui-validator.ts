@@ -1,3 +1,4 @@
+import { parseDateToUTC } from "@/lib/utils/date";
 import { z } from "zod";
 
 export const TeamSchema = z.object({
@@ -18,11 +19,11 @@ export const CandidateSchema = z.object({
   phone: z.string().min(1, "Phone is required"),
   onboardingDate: z.union([z.string(), z.date()]).transform((val) => {
     if (val instanceof Date) {
-      return val.toISOString().split("T")[0];
+      return parseDateToUTC(val.toISOString());
     }
     // If it's already a string, ensure it's a valid date
     if (!Number.isNaN(Date.parse(val))) {
-      return new Date(val).toISOString().split("T")[0];
+      return parseDateToUTC(val);
     }
     throw new Error("Invalid date format");
   }),

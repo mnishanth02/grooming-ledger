@@ -1,5 +1,5 @@
 "use client";
-import { DatePickerWithLabel } from "@/app/components/common/date-picker-with-label";
+import { DatePickerWithLabel } from "@/components/common/date-picker-with-label";
 import { InputWithLabel } from "@/components/common/input-with-label";
 import PageHeading from "@/components/common/page-heading";
 import { SelectWithLabel } from "@/components/common/select-with-label";

@@ -1,9 +1,9 @@
 import Loader from "@/components/common/loader";
 import { getAllCandidatesByTeamIdQuery } from "@/data/data-access/candidate.queries";
+import { formatUTCForDisplay } from "@/lib/utils/date";
 import { Suspense } from "react";
 import CandidateClient from "./components/client";
 import type { CandidateColumn } from "./components/columns";
-
 interface CandidatePageProps {
   params: Promise<{ teamId: string }>;
 }
@@ -20,7 +20,7 @@ const CandidatePage = async ({ params }: CandidatePageProps) => {
         email: item.email,
         groomer: item.assignedGroomer?.name ?? "",
         assessor: item.assignedAssessor?.name ?? "",
-        onboardingDate: item.onboardingDate,
+        onboardingDate: formatUTCForDisplay(item.onboardingDate),
       }))
     : [];
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
@@ -9,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { formatUTCForDisplay, parseDateToUTC } from "@/lib/utils/date";
 
 type Props<S> = {
   fieldTitle: string;
@@ -47,7 +47,7 @@ export function DatePickerWithLabel<S>({
                   disabled={disabled}
                 >
                   {field.value ? (
-                    format(field.value ? new Date(field.value) : new Date(), "PPP")
+                    formatUTCForDisplay(field.value, "PPP")
                   ) : (
                     <span>{placeholder}</span>
                   )}
@@ -60,7 +60,13 @@ export function DatePickerWithLabel<S>({
                 mode="single"
                 selected={field.value ? new Date(field.value) : undefined}
                 onSelect={(date) => {
-                  field.onChange(date ? date.toISOString().split("T")[0] : "");
+                  if (date) {
+                    // Convert the selected date to UTC before storing
+                    const utcDate = parseDateToUTC(date.toISOString());
+                    field.onChange(utcDate);
+                  } else {
+                    field.onChange("");
+                  }
                 }}
                 disabled={disabled}
                 initialFocus
