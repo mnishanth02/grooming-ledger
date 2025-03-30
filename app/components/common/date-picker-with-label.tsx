@@ -46,7 +46,11 @@ export function DatePickerWithLabel<S>({
                   )}
                   disabled={disabled}
                 >
-                  {field.value ? format(new Date(field.value), "PPP") : <span>{placeholder}</span>}
+                  {field.value ? (
+                    format(field.value ? new Date(field.value) : new Date(), "PPP")
+                  ) : (
+                    <span>{placeholder}</span>
+                  )}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </FormControl>
@@ -56,9 +60,7 @@ export function DatePickerWithLabel<S>({
                 mode="single"
                 selected={field.value ? new Date(field.value) : undefined}
                 onSelect={(date) => {
-                  if (date) {
-                    field.onChange(date.toISOString().split("T")[0]);
-                  }
+                  field.onChange(date ? date.toISOString().split("T")[0] : "");
                 }}
                 disabled={disabled}
                 initialFocus

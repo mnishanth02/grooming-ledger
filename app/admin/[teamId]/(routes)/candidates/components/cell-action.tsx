@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteCandidate } from "@/data/actions/candidate.action";
-import { Copy, Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Edit, MoreHorizontal, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
@@ -45,11 +45,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     },
   });
 
-  const onCopy = (id: string) => {
-    navigator.clipboard.writeText(id);
-    toast.success("Candidate ID copied to the clipboard.");
-  };
-
   const onDelete = async () => {
     executeDelete({
       candidateId: data.id,
@@ -73,10 +68,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => onCopy(data.id)}>
-            <Copy className="mr-2 h-4 w-4" />
-            Copy ID
-          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => router.push(`/admin/${params.teamId}/candidates/${data.id}`)}
           >

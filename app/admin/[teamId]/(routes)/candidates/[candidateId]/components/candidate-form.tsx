@@ -44,7 +44,9 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
           name: initialData.name,
           email: initialData.email,
           phone: initialData.phone ?? "",
-          onboardingDate: initialData.onboardingDate,
+          onboardingDate: initialData.onboardingDate ?? "",
+          resumeUrl: initialData.resumeUrl ?? "",
+          designation: initialData.designation ?? "",
           yearsOfExperience: initialData.yearsOfExperience ?? 0,
           assignedAssessorId: initialData.assignedAssessorId ?? "",
           assignedGroomerId: initialData.assignedGroomerId ?? "",
@@ -56,6 +58,8 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
           phone: "",
           onboardingDate: "",
           yearsOfExperience: 0,
+          resumeUrl: "",
+          designation: "",
           assignedAssessorId: "",
           assignedGroomerId: "",
           notes: "",
@@ -132,7 +136,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
       onboardingDate: data.onboardingDate,
       yearsOfExperience: Number(data.yearsOfExperience),
       resumeUrl: data.resumeUrl,
-      designation: data.designation,
+      designation: data.designation ?? "",
       assignedAssessorId: data.assignedAssessorId,
       assignedGroomerId: data.assignedGroomerId,
       notes: data.notes,
@@ -229,7 +233,6 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
               nameInSchema="resumeUrl"
               placeholder="Resume URL"
             />
-
             <InputWithLabel
               fieldTitle="Designation"
               disabled={isUpdating || isDeleting}
