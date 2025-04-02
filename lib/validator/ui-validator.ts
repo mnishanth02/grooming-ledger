@@ -30,8 +30,8 @@ export const CandidateSchema = z.object({
   yearsOfExperience: z.coerce.number().min(0, "Years of experience must be at least 0"),
   resumeUrl: z.string().optional(),
   designation: z.string().nullable().optional(),
-  assignedAssessorId: z.string().nullable().optional(),
-  assignedGroomerId: z.string().nullable().optional(),
+  assignedAssessorId: z.string(),
+  assignedGroomerId: z.string(),
   notes: z.string().nullable().optional(),
 });
 

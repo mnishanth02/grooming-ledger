@@ -66,7 +66,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
         },
   });
 
-  const { execute: executeCreate } = useAction(createCandidate, {
+  const { execute: executeCreate, isPending: isCreating } = useAction(createCandidate, {
     onExecute: () => {
       setServerError(null);
     },
@@ -155,6 +155,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
   const onDelete = () => {
     executeDelete({
       candidateId: initialData?.id ?? "",
+      teamId: params.teamId as string,
     });
   };
 
@@ -191,7 +192,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
           <div className="grid grid-cols-2 gap-8 lg:grid-cols-3">
             <InputWithLabel
               fieldTitle="Name"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="name"
               placeholder="Candidate Name"
             />
@@ -199,7 +200,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
             <InputWithLabel
               type="email"
               fieldTitle="Email"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="email"
               placeholder="Email"
             />
@@ -207,14 +208,14 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
             <InputWithLabel
               type="number"
               fieldTitle="Phone Number"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="phone"
               placeholder="Phone Number"
             />
 
             <DatePickerWithLabel
               fieldTitle="Onboarding Date"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="onboardingDate"
               placeholder="Select onboarding date"
             />
@@ -222,27 +223,27 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
             <InputWithLabel
               type="number"
               fieldTitle="Years of Experience"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="yearsOfExperience"
               placeholder="Years of Experience"
             />
 
             <InputWithLabel
               fieldTitle="Resume URL"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="resumeUrl"
               placeholder="Resume URL"
             />
             <InputWithLabel
               fieldTitle="Designation"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="designation"
               placeholder="Designation"
             />
 
             <SelectWithLabel
               fieldTitle="Assessor Name"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="assignedAssessorId"
               placeholder="Assign assessor"
               options={
@@ -255,7 +256,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
 
             <SelectWithLabel
               fieldTitle="Groomer Name"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="assignedGroomerId"
               placeholder="Assign groomer"
               options={
@@ -268,13 +269,13 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
 
             <TextareaWithLabel
               fieldTitle="Notes"
-              disabled={isUpdating || isDeleting}
+              disabled={isUpdating || isDeleting || isCreating}
               nameInSchema="notes"
               placeholder="Notes"
             />
           </div>
-          <Button type="submit" disabled={isUpdating || isDeleting}>
-            {isUpdating ? (
+          <Button type="submit" disabled={isUpdating || isDeleting || isCreating}>
+            {isUpdating || isCreating || isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...

@@ -30,6 +30,9 @@ export const createCandidate = teamActionClient
     const result = await createCandidateQuery(candidateData);
 
     if (!result.success) {
+      if (result.error?.message.includes("candidate_email_unique")) {
+        throw new ActionError("Candidate already exists");
+      }
       throw new ActionError(result.error?.message || "Failed to create candidate");
     }
 
@@ -98,6 +101,7 @@ export const deleteCandidate = teamActionClient
   .schema(
     z.object({
       candidateId: z.string().min(1, "Candidate ID is required"),
+      teamId: z.string().min(1, "Team ID is required"),
     }),
   )
   .action(async ({ parsedInput }) => {

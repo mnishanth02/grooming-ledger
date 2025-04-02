@@ -19,6 +19,10 @@ export const columns: ColumnDef<CandidateColumn>[] = [
     header: "Name",
   },
   {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
     accessorKey: "status",
     header: "Status",
   },
@@ -36,6 +40,7 @@ export const columns: ColumnDef<CandidateColumn>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => <CellAction data={row.original} />,
   },
 ];
