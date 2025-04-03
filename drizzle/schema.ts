@@ -16,4 +16,14 @@ export {
   userAuditLogsRelations,
 } from "./schema/auth";
 
-export { teams, candidates, candidatesRelations } from "./schema/grooming";
+export {
+  teams,
+  candidates,
+  candidatesRelations,
+  candidateSkills,
+  candidateSkillsRelations,
+  topics,
+  topicsRelations,
+  subTopics,
+  subTopicsRelations,
+} from "./schema/grooming";

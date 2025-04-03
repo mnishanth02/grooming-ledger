@@ -69,8 +69,86 @@ export const candidates = pgTable(
   ],
 );
 
-// Relations
-export const candidatesRelations = relations(candidates, ({ one }) => ({
+export const candidateSkills = pgTable(
+  "candidate_skills",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    candidateId: text("candidate_id")
+      .notNull()
+      .references(() => candidates.id, { onDelete: "cascade" }),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    proficiencyLevel: integer("proficiency_level"), // 1-5
+  },
+  (table) => [index("candidate_skill_unique").on(table.candidateId, table.skillId)],
+);
+
+export const topics = pgTable(
+  "topics",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull().unique(),
+    description: text("description"),
+    category: text("category"),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("topic_name_idx").on(table.name),
+    index("topic_category_idx").on(table.category),
+  ],
+);
+
+export const subTopics = pgTable(
+  "sub_topics",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    topicId: text("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    description: text("description"),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("sub_topic_name_idx").on(table.name),
+    index("sub_topic_topic_idx").on(table.topicId),
+  ],
+);
+
+// ********* Relations *********
+
+export const topicsRelations = relations(topics, ({ many }) => ({
+  // questions: many(interviewQuestions),
+  candidateSkills: many(candidateSkills),
+  subTopics: many(subTopics),
+}));
+
+export const candidateSkillsRelations = relations(candidateSkills, ({ one }) => ({
+  candidate: one(candidates, {
+    fields: [candidateSkills.candidateId],
+    references: [candidates.id],
+  }),
+  skill: one(topics, {
+    fields: [candidateSkills.skillId],
+    references: [topics.id],
+  }),
+}));
+
+export const subTopicsRelations = relations(subTopics, ({ one }) => ({
+  topic: one(topics, {
+    fields: [subTopics.topicId],
+    references: [topics.id],
+  }),
+}));
+
+export const candidatesRelations = relations(candidates, ({ one, many }) => ({
   // Assigned roles
   assignedAssessor: one(users, {
     fields: [candidates.assignedAssessorId],
@@ -82,7 +160,7 @@ export const candidatesRelations = relations(candidates, ({ one }) => ({
     references: [users.id],
     relationName: "GroomerCandidates", // Match relation name in usersRelations
   }),
-
+  skills: many(candidateSkills),
   // History items
   // assessments: many(assessments),
   // groomingLogs: many(groomingLogs),
@@ -91,7 +169,11 @@ export const candidatesRelations = relations(candidates, ({ one }) => ({
 //  select Quries
 export const selectTeamSchema = createSelectSchema(teams);
 export const selectCandidateSchema = createSelectSchema(candidates);
+export const selectCandidateSkillsSchema = createSelectSchema(candidateSkills);
+export const selectTopicsSchema = createSelectSchema(topics);
 
 // Select Types
 export type TeamType = typeof teams.$inferSelect;
 export type CandidateType = typeof candidates.$inferSelect;
+export type CandidateSkillsType = typeof candidateSkills.$inferSelect;
+export type TopicsType = typeof topics.$inferSelect;

@@ -36,6 +36,20 @@
       "when": 1743353322425,
       "tag": "0004_giant_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743665783502,
+      "tag": "0005_slippery_mimic",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743666259500,
+      "tag": "0006_ordinary_jetstream",
+      "breakpoints": true
     }
   ]
 }

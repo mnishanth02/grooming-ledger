@@ -10,7 +10,14 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import type { TeamType } from "@/drizzle/schema/grooming";
-import { BarChart, GalleryHorizontalEnd, LayoutDashboard, Settings2, Users } from "lucide-react";
+import {
+  BarChart,
+  Book,
+  GalleryHorizontalEnd,
+  LayoutDashboard,
+  Settings2,
+  Users,
+} from "lucide-react";
 import type { User } from "next-auth";
 import type * as React from "react";
 import { TeamSwitcher } from "./team-switcher";
@@ -30,6 +37,11 @@ const getDashboardNavItems = (teamId: string) => [
     title: "Assocaites",
     url: `/admin/${teamId}/associates`,
     icon: GalleryHorizontalEnd,
+  },
+  {
+    title: "Topics Management",
+    url: `/admin/${teamId}/topics`,
+    icon: Book,
   },
 
   {

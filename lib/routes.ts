@@ -31,3 +31,15 @@ export const apiAuthPrefix = ["/api"];
 export const DEFAULT_SIGNIN_REDIRECT = "/";
 export const DEFAULT_SIGN_OUT_REDIRECT = "/auth/sign-in";
 // export const DEFAULT_AUTH_ERROR_REDIRECT = "/auth-error";
+
+/**
+ * Admin route constants for clean navigation and path management
+ */
+export const ADMIN_ROUTES = {
+  ADMIN_HOME: "/admin",
+  TOPICS: (teamId: string) => `/admin/${teamId}/topics`,
+  CANDIDATES: (teamId: string) => `/admin/${teamId}/candidates`,
+  REPORTS: (teamId: string) => `/admin/${teamId}/reports`,
+  SETTINGS: (teamId: string) => `/admin/${teamId}/settings`,
+  ASSOCIATES: (teamId: string) => `/admin/${teamId}/associates`,
+};
