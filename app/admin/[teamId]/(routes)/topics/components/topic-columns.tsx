@@ -35,15 +35,15 @@ const SubtopicsCell = ({ subtopics }: { subtopics: TopicWithSubtopics["subTopics
               <TooltipTrigger asChild>
                 <Badge
                   variant="secondary"
-                  className="max-w-[150px] truncate bg-primary/40 text-primary hover:bg-primary/60"
+                  className="max-w-[150px] truncate bg-primary/30 text-primary hover:bg-primary/50"
                 >
                   {subtopic.name}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent side="top" align="center" className="max-w-[250px]">
-                <p>{subtopic.name}</p>
+                <p className="font-medium text-primary-foreground">{subtopic.name}</p>
                 {subtopic.description && (
-                  <p className="mt-1 text-muted-foreground text-xs">{subtopic.description}</p>
+                  <p className="mt-1 text-primary-foreground/80 text-xs">{subtopic.description}</p>
                 )}
               </TooltipContent>
             </Tooltip>
