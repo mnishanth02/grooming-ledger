@@ -11,7 +11,6 @@ interface TopicsManagementPageProps {
 export default async function TopicsManagementPage({ params }: TopicsManagementPageProps) {
   const { teamId } = await params;
 
-  // Fetch topics data
   const topics = await getTopicsWithSubtopics();
 
   return (

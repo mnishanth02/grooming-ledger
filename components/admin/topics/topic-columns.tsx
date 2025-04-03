@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TopicWithSubtopics } from "@/data/data-access/topic.queries";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Edit, Trash } from "lucide-react";
@@ -86,7 +87,7 @@ export const useTopicColumns = (teamId: string): ColumnDef<TopicWithSubtopics>[]
               <Badge
                 key={subtopic.id}
                 variant="secondary"
-                className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                className="bg-primary/40 text-primary hover:bg-primary/60"
               >
                 {subtopic.name}
               </Badge>
@@ -97,34 +98,52 @@ export const useTopicColumns = (teamId: string): ColumnDef<TopicWithSubtopics>[]
     },
     {
       id: "actions",
-      header: "Actions",
+      header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => {
         const topic = row.original;
         const isOpen = editDialogOpen[topic.id] || false;
         const isDeleting = deletingId === topic.id;
 
         return (
-          <div className="flex items-center justify-end space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => toggleEditDialog(topic.id, true)}
-              className="h-8 w-8"
-            >
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Edit</span>
-            </Button>
+          <div className="flex items-center justify-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleEditDialog(topic.id, true)}
+                    className="h-8 w-8 cursor-pointer rounded-full"
+                  >
+                    <Edit className="h-4 w-4 cursor-pointer text-primary" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit topic</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleDelete(topic.id)}
-              disabled={isDeleting}
-              className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDelete(topic.id)}
+                    disabled={isDeleting}
+                    className="h-8 w-8 cursor-pointer rounded-full"
+                  >
+                    <Trash className="h-4 w-4 cursor-pointer text-red-500" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete topic</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <Dialog open={isOpen} onOpenChange={(open) => toggleEditDialog(topic.id, open)}>
               <DialogContent className="sm:max-w-md">

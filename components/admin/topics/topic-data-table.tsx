@@ -53,7 +53,7 @@ export function TopicDataTable<TData, TValue>({
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full rounded-md border">
       <div className="flex flex-col space-y-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="relative w-full max-w-sm">
           <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
@@ -74,9 +74,9 @@ export function TopicDataTable<TData, TValue>({
         <Table>
           <TableHeader className="bg-muted/30">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-muted/20">
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="py-3 font-medium">
+                  <TableHead key={header.id} className="py-3 font-medium text-muted-foreground">
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -91,7 +91,7 @@ export function TopicDataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-muted/5"
+                  className="transition-colors hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-3">
@@ -103,7 +103,16 @@ export function TopicDataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No topics found.
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <p>No topics found.</p>
+                    <Button
+                      variant="link"
+                      onClick={onAddNew}
+                      className="mt-2 cursor-pointer hover:underline"
+                    >
+                      Add your first topic
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -112,26 +121,43 @@ export function TopicDataTable<TData, TValue>({
       </div>
 
       {table.getRowModel().rows?.length > 0 && (
-        <div className="flex items-center justify-end space-x-2 border-t p-4">
-          <div className="mr-4 text-muted-foreground text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        <div className="flex items-center justify-between border-t p-4">
+          <div className="text-muted-foreground text-sm">
+            Page <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of{" "}
+            <span className="font-medium">{table.getPageCount()}</span> | Showing{" "}
+            <span className="font-medium">
+              {Math.min(
+                table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1,
+                table.getFilteredRowModel().rows.length,
+              )}
+              -
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length,
+              )}
+            </span>{" "}
+            of <span className="font-medium">{table.getFilteredRowModel().rows.length}</span>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="h-8 px-4"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="h-8 px-4"
+            >
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>
