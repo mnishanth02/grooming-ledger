@@ -1,8 +1,7 @@
-import TopicsDataTable from "@/components/admin/topics/topic-details";
-import PageHeading from "@/components/common/page-heading";
+import Loader from "@/components/common/loader";
 import { getTopicsWithSubtopics } from "@/data/data-access/topic.queries";
-import { Loader2 } from "lucide-react";
 import { Suspense } from "react";
+import TopicClient from "./components/topic-client";
 
 interface TopicsManagementPageProps {
   params: Promise<{ teamId: string }>;
@@ -11,27 +10,15 @@ interface TopicsManagementPageProps {
 export default async function TopicsManagementPage({ params }: TopicsManagementPageProps) {
   const { teamId } = await params;
 
-  const topics = await getTopicsWithSubtopics();
+  const topics = await getTopicsWithSubtopics(teamId);
 
   return (
-    <div className="flex flex-col space-y-4 p-8 pt-6">
-      <div>
-        <PageHeading
-          title="Topics Management"
-          description="Manage topic categories for grooming sessions and assessments."
-        />
+    <div className="flex-col">
+      <div className="flex-1 space-y-4 p-8 pt-6">
+        <Suspense fallback={<Loader />}>
+          <TopicClient teamId={teamId} data={topics} />
+        </Suspense>
       </div>
-
-      <Suspense
-        fallback={
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary/60" />
-            <span className="ml-2 text-muted-foreground">Loading topics...</span>
-          </div>
-        }
-      >
-        <TopicsDataTable teamId={teamId} initialTopics={topics} />
-      </Suspense>
     </div>
   );
 }

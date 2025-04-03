@@ -95,11 +95,13 @@ export const topics = pgTable(
     name: text("name").notNull().unique(),
     description: text("description"),
     category: text("category"),
+    teamId: text("team_id").references(() => teams.id, { onDelete: "cascade" }),
     updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },
   (table) => [
     index("topic_name_idx").on(table.name),
     index("topic_category_idx").on(table.category),
+    index("topic_team_idx").on(table.teamId),
   ],
 );
 
@@ -124,10 +126,18 @@ export const subTopics = pgTable(
 
 // ********* Relations *********
 
-export const topicsRelations = relations(topics, ({ many }) => ({
+export const teamsRelations = relations(teams, ({ many }) => ({
+  topics: many(topics),
+}));
+
+export const topicsRelations = relations(topics, ({ many, one }) => ({
   // questions: many(interviewQuestions),
   candidateSkills: many(candidateSkills),
   subTopics: many(subTopics),
+  team: one(teams, {
+    fields: [topics.teamId],
+    references: [teams.id],
+  }),
 }));
 
 export const candidateSkillsRelations = relations(candidateSkills, ({ one }) => ({

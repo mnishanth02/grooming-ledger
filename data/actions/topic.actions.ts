@@ -31,6 +31,7 @@ export const createTopic = teamActionClient
         name,
         description: description ?? null,
         category: category ?? null,
+        teamId,
         subtopics: subtopics?.map((sub) => ({
           name: sub.name,
           description: sub.description ?? null,
@@ -76,6 +77,7 @@ export const updateTopic = teamActionClient
 
       const result = await updateTopicQuery(topicId, {
         ...topicData,
+        teamId,
         subtopics: subtopics?.map((sub) => ({
           id: sub.id,
           name: sub.name,

@@ -9,10 +9,14 @@ import { asc } from "drizzle-orm";
 /**
  * Fetches all topics along with their associated subtopics.
  * Orders topics and subtopics by name alphabetically.
+ * @param {string} teamId - The team ID to filter topics by
  * @returns {Promise<Array<TopicWithSubtopics>>} A promise that resolves to an array of topics, each including its subtopics.
  */
-export async function getTopicsWithSubtopics() {
-  const data = await db.query.topics.findMany({
+export async function getTopicsWithSubtopics(teamId: string) {
+  const query = teamId ? eq(topics.teamId, teamId) : undefined;
+
+  const topicData = await db.query.topics.findMany({
+    where: query,
     with: {
       subTopics: {
         orderBy: (subTopics, { asc }) => [asc(subTopics.name)], // Order subtopics by name
@@ -20,7 +24,8 @@ export async function getTopicsWithSubtopics() {
     },
     orderBy: asc(topics.name), // Order topics by name
   });
-  return data;
+
+  return topicData || [];
 }
 
 // Define the type based on the return type of the query function
@@ -33,10 +38,11 @@ export async function createTopicQuery(data: {
   name: string;
   description: string | null;
   category: string | null;
+  teamId?: string;
   subtopics?: Array<{ name: string; description: string | null }>;
 }): Promise<ApiResponse<TopicWithSubtopics>> {
   try {
-    const { name, description, category, subtopics: inputSubtopics } = data;
+    const { name, description, category, teamId, subtopics: inputSubtopics } = data;
 
     // 1. Insert the main topic
     const [insertedTopic] = await db
@@ -45,6 +51,7 @@ export async function createTopicQuery(data: {
         name,
         description,
         category,
+        teamId,
       })
       .returning();
 
@@ -101,6 +108,7 @@ export async function updateTopicQuery(
     name?: string;
     description?: string | null;
     category?: string | null;
+    teamId?: string;
     subtopics?: Array<{
       id?: string;
       name: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import NextTopLoader from "nextjs-toploader";
@@ -13,8 +14,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <NextTopLoader color="#15803d" shadow="0 0 10px #15803d,0 0 5px #15803d" />
       <SessionProvider>
-        <ModalProvider />
-        <NuqsAdapter>{children}</NuqsAdapter>
+        <TooltipProvider>
+          <ModalProvider />
+          <NuqsAdapter>{children}</NuqsAdapter>
+        </TooltipProvider>
       </SessionProvider>
       <Toaster
         position="bottom-right"
