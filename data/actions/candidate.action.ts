@@ -4,13 +4,14 @@ import { candidateStatusEnum } from "@/drizzle/schema/enums";
 import type { candidates } from "@/drizzle/schema/grooming";
 import { ActionError } from "@/lib/error";
 import { teamActionClient } from "@/lib/utils/safe-action";
-import { CandidateSchema } from "@/lib/validator/ui-validator";
+import { CandidateSchema, OptionSchema } from "@/lib/validator/ui-validator";
 import { z } from "zod";
 import {
   createCandidateQuery,
   deleteCandidateQuery,
   getCandidateByIdQuery,
   updateCandidateQuery,
+  updateCandidateSkillsQuery,
 } from "../data-access/candidate.queries";
 
 // Create candidate action
@@ -19,12 +20,20 @@ export const createCandidate = teamActionClient
     actionName: "createCandidate",
     requiresAuth: true,
   })
-  .schema(CandidateSchema.extend({ teamId: z.string().min(1, "Team is required") }))
+  .schema(
+    CandidateSchema.extend({
+      teamId: z.string().min(1, "Team is required"),
+      skills: z.array(OptionSchema).optional().default([]),
+    }),
+  )
   .action(async ({ parsedInput }) => {
+    // Extract skills from input
+    const { skills, ...candidateInput } = parsedInput;
+
     // Convert Date to ISO string
     const candidateData = {
-      ...parsedInput,
-      onboardingDate: new Date(parsedInput.onboardingDate).toISOString(),
+      ...candidateInput,
+      onboardingDate: new Date(candidateInput.onboardingDate).toISOString(),
     };
 
     const result = await createCandidateQuery(candidateData);
@@ -34,6 +43,17 @@ export const createCandidate = teamActionClient
         throw new ActionError("Candidate already exists");
       }
       throw new ActionError(result.error?.message || "Failed to create candidate");
+    }
+
+    // If we have skills, add them
+    if (skills && skills.length > 0 && result.data) {
+      const skillIds = skills.map((skill) => skill.value);
+      const skillsResult = await updateCandidateSkillsQuery(result.data.id, skillIds);
+
+      if (!skillsResult.success) {
+        // Log error but don't fail the whole operation
+        console.error("Failed to add candidate skills:", skillsResult.error);
+      }
     }
 
     return {
@@ -63,10 +83,11 @@ export const updateCandidate = teamActionClient
       assignedGroomerId: z.string().nullable().optional(),
       clientInterviewQuestions: z.string().nullable().optional(),
       placementDetails: z.string().nullable().optional(),
+      skills: z.array(OptionSchema).optional(),
     }),
   )
   .action(async ({ parsedInput }) => {
-    const { candidateId, onboardingDate, ...rest } = parsedInput;
+    const { candidateId, onboardingDate, skills, ...rest } = parsedInput;
 
     // Verify candidate exists
     const candidateCheck = await getCandidateByIdQuery(candidateId);
@@ -84,6 +105,17 @@ export const updateCandidate = teamActionClient
 
     if (!result.success) {
       throw new ActionError(result.error?.message || "Failed to update candidate");
+    }
+
+    // Update skills if provided
+    if (skills) {
+      const skillIds = skills.map((skill) => skill.value);
+      const skillsResult = await updateCandidateSkillsQuery(candidateId, skillIds);
+
+      if (!skillsResult.success) {
+        // Log error but don't fail the whole operation
+        console.error("Failed to update candidate skills:", skillsResult.error);
+      }
     }
 
     return {

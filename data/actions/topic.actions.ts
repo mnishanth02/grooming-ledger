@@ -9,10 +9,12 @@ import {
   updateTopicSchema,
 } from "@/lib/validator/topic-validator";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import {
   createTopicQuery,
   deleteTopicQuery,
   getTopicByIdQuery,
+  getTopicsAsOptionsQuery,
   updateTopicQuery,
 } from "../data-access/topic.queries";
 
@@ -140,5 +142,36 @@ export const deleteTopic = teamActionClient
     } catch (error) {
       console.error("Error deleting topic:", error);
       throw new ActionError(error instanceof Error ? error.message : "Failed to delete topic");
+    }
+  });
+
+// --- Get Topic Options Action ---
+export const getTopicOptions = teamActionClient
+  .metadata({
+    actionName: "getTopicOptions",
+    requiresAuth: true,
+  })
+  .schema(
+    z.object({
+      teamId: z.string().min(1, "Team ID is required"),
+    }),
+  )
+  .action(async ({ parsedInput }) => {
+    try {
+      const { teamId } = parsedInput;
+
+      const result = await getTopicsAsOptionsQuery(teamId);
+
+      if (!result.success) {
+        throw new ActionError(result.error?.message || "Failed to fetch topics");
+      }
+
+      return {
+        success: true,
+        data: result.data,
+      };
+    } catch (error) {
+      console.error("Error fetching topic options:", error);
+      throw new ActionError(error instanceof Error ? error.message : "Failed to fetch topics");
     }
   });

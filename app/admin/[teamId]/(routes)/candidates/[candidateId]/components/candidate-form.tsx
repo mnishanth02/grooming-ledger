@@ -3,6 +3,7 @@ import { DatePickerWithLabel } from "@/components/common/date-picker-with-label"
 import { InputWithLabel } from "@/components/common/input-with-label";
 import PageHeading from "@/components/common/page-heading";
 import { SelectWithLabel } from "@/components/common/select-with-label";
+import { SkillsSelector } from "@/components/common/skills-selector";
 import { TextareaWithLabel } from "@/components/common/textarea-with-label";
 import { AlertModal } from "@/components/modals/alert-modal";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,11 @@ import { Separator } from "@/components/ui/separator";
 import { createCandidate, deleteCandidate, updateCandidate } from "@/data/actions/candidate.action";
 import type { UserType } from "@/drizzle/schema/auth";
 import type { CandidateType } from "@/drizzle/schema/grooming";
-import { CandidateSchema, type CandidateSchemaType } from "@/lib/validator/ui-validator";
+import {
+  CandidateSchema,
+  type CandidateSchemaType,
+  type OptionType,
+} from "@/lib/validator/ui-validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -21,7 +26,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 interface Candidaterops {
-  initialData: CandidateType | null;
+  initialData: (CandidateType & { skills?: OptionType[] }) | null;
   associates: UserType[] | null;
 }
 
@@ -51,6 +56,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
           assignedAssessorId: initialData.assignedAssessorId ?? "",
           assignedGroomerId: initialData.assignedGroomerId ?? "",
           notes: initialData.notes ?? "",
+          skills: initialData.skills ?? [],
         }
       : {
           name: "",
@@ -63,6 +69,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
           assignedAssessorId: "",
           assignedGroomerId: "",
           notes: "",
+          skills: [],
         },
   });
 
@@ -140,6 +147,7 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
       assignedAssessorId: data.assignedAssessorId,
       assignedGroomerId: data.assignedGroomerId,
       notes: data.notes,
+      skills: data.skills,
     };
 
     if (initialData) {
@@ -267,21 +275,36 @@ const CandidateForm = ({ initialData, associates }: Candidaterops) => {
               }
             />
 
-            <TextareaWithLabel
-              fieldTitle="Notes"
-              disabled={isUpdating || isDeleting || isCreating}
-              nameInSchema="notes"
-              placeholder="Notes"
-            />
+            <div className="col-span-2 lg:col-span-3">
+              <SkillsSelector
+                teamId={params.teamId as string}
+                nameInSchema="skills"
+                fieldTitle="Candidate Skills"
+                placeholder="Select technologies..."
+                disabled={isUpdating || isDeleting || isCreating}
+              />
+            </div>
           </div>
-          <Button type="submit" disabled={isUpdating || isDeleting || isCreating}>
-            {isUpdating || isCreating || isDeleting ? (
+
+          <TextareaWithLabel
+            fieldTitle="Notes"
+            disabled={isUpdating || isDeleting || isCreating}
+            nameInSchema="notes"
+            placeholder="Additional notes about the candidate"
+          />
+
+          <Button
+            disabled={isUpdating || isDeleting || isCreating}
+            className="ml-auto"
+            type="submit"
+          >
+            {isCreating || isUpdating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                Loading
               </>
             ) : (
-              <>{action}</>
+              action
             )}
           </Button>
         </form>

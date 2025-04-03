@@ -288,3 +288,36 @@ export async function getTopicByIdQuery(topicId: string): Promise<ApiResponse<To
     };
   }
 }
+
+/**
+ * Fetches all topics for a team formatted as dropdown options.
+ * Each topic is returned with value, label, and category properties.
+ * @param {string} teamId - The team ID to filter topics by
+ * @returns {Promise<Array<{value: string, label: string, category: string}>>} A promise that resolves to an array of topic options.
+ */
+export async function getTopicsAsOptionsQuery(teamId: string) {
+  try {
+    const topics = await getTopicsWithSubtopics(teamId);
+
+    // Transform the data to match the Option format expected by the MultipleSelector
+    const topicOptions = topics.map((topic) => ({
+      value: topic.id,
+      label: topic.name,
+      category: topic.category || "Uncategorized",
+    }));
+
+    return {
+      success: true,
+      data: topicOptions,
+    };
+  } catch (error) {
+    console.error("Error fetching topic options:", error);
+    return {
+      success: false,
+      error: {
+        code: 500,
+        message: error instanceof Error ? error.message : "Failed to fetch topic options",
+      },
+    };
+  }
+}
