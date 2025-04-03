@@ -1,7 +1,6 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { CellAction } from "./cell-action";
 
 export type CandidateColumn = {
   id: string;
@@ -37,10 +36,5 @@ export const columns: ColumnDef<CandidateColumn>[] = [
   {
     accessorKey: "onboardingDate",
     header: "Onboarding Date",
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => <CellAction data={row.original} />,
   },
 ];

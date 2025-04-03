@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { useMediaQuery } from "@/hooks/general/use-media-query";
 import { Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { parseAsString, useQueryState } from "nuqs";
+import { CandidateSheet } from "./candidate-sheet";
 import { type CandidateColumn, columns } from "./columns";
 
 interface CandidateClientProps {
@@ -16,6 +18,15 @@ const CandidateClient = ({ data }: CandidateClientProps) => {
   const params = useParams();
   const router = useRouter();
   const isMobile = useMediaQuery("(max-width: 768px)");
+
+  // Sheet state management using nuqs for URL persistence
+  const [selectedCandidateId, setSelectedCandidateId] = useQueryState(
+    "candidateId",
+    parseAsString.withDefault(""),
+  );
+
+  // Find the selected candidate data
+  const selectedCandidate = data.find((c) => c.id === selectedCandidateId);
 
   return (
     <>
@@ -33,7 +44,17 @@ const CandidateClient = ({ data }: CandidateClientProps) => {
         </Button>
       </div>
       <Separator />
-      <DataTable columns={columns} data={data} searchKey="name" />
+      <DataTable
+        columns={columns}
+        data={data}
+        searchKey="name"
+        onRowClick={(row: CandidateColumn) => setSelectedCandidateId(row.id)}
+      />
+      <CandidateSheet
+        isOpen={!!selectedCandidateId}
+        onClose={() => setSelectedCandidateId("")}
+        candidate={selectedCandidate}
+      />
     </>
   );
 };
