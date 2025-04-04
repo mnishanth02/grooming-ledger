@@ -48,15 +48,41 @@ export function CandidateSheet({ isOpen, onClose, candidate }: CandidateSheetPro
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "new":
+        return "bg-primary/10 text-primary border-primary/20";
+      case "pre_assessment_pending":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      case "pre_assessment_completed":
         return "bg-blue-50 text-blue-700 border-blue-200";
+      case "assessment_passed":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "assessment_failed":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      case "grooming_in_progress":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200";
+      case "grooming_completed":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "post_assessment_pending":
+        return "bg-amber-50 text-amber-700 border-amber-200";
+      case "post_assessment_completed":
+        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "client_interview_scheduled":
+        return "bg-purple-50 text-purple-700 border-purple-200";
+      case "client_interview_failed":
+        return "bg-destructive/10 text-destructive border-destructive/20";
+      case "re_grooming_scheduled":
+        return "bg-orange-50 text-orange-700 border-orange-200";
+      case "placed":
+        return "bg-green-50 text-green-700 border-green-200";
+      case "terminated":
+        return "bg-destructive/10 text-destructive border-destructive/20";
       case "in progress":
         return "bg-amber-50 text-amber-700 border-amber-200";
       case "completed":
         return "bg-green-50 text-green-700 border-green-200";
       case "rejected":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-destructive/10 text-destructive border-destructive/20";
       default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+        return "bg-muted text-muted-foreground border-muted-foreground/20";
     }
   };
 
@@ -112,9 +138,9 @@ export function CandidateSheet({ isOpen, onClose, candidate }: CandidateSheetPro
           </div>
         </SheetHeader>
 
-        <Separator className="my-4" />
+        <Separator />
 
-        <div className="space-y-6">
+        <div className="space-y-6 px-3 pt-2">
           <div className="rounded-lg bg-muted/50 p-4">
             <h3 className="mb-3 font-medium text-sm">Team Members</h3>
             <div className="space-y-3">
