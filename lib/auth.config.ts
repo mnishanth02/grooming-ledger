@@ -30,7 +30,6 @@ export default {
           if (passwordsMatch) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { hashedPassword, ...userWithoutPassword } = user.data;
-            console.log("[] userWithoutPassword", userWithoutPassword);
 
             return userWithoutPassword;
           }

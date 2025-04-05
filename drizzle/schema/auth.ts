@@ -11,11 +11,12 @@ import {
   uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { userRoleEnum } from "./enums";
-import { candidates, teams } from "./grooming";
+import { candidates, teams, topics } from "./grooming";
 // ----------------------- USERS & AUTHENTICATION -----------------------
+//  users or Associates
 export const users = pgTable(
   "users",
   {
@@ -95,10 +96,39 @@ export const userAuditLogs = pgTable(
   ],
 );
 
+export const associateSkills = pgTable(
+  "associate_skills",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    associateId: text("associate_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    skillId: text("skill_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    proficiencyLevel: integer("proficiency_level"), // 1-5
+  },
+  (table) => [uniqueIndex("associate_skill_unique").on(table.associateId, table.skillId)],
+);
+
 /*******************************************
  ************** Relations *****************
  *******************************************
  */
+
+export const associateSkillsRelations = relations(associateSkills, ({ one }) => ({
+  associate: one(users, {
+    fields: [associateSkills.associateId],
+    references: [users.id],
+    relationName: "AssociateSkills",
+  }),
+  skill: one(topics, {
+    fields: [associateSkills.skillId],
+    references: [topics.id],
+  }),
+}));
 
 // Relations for users
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -107,7 +137,9 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     fields: [users.teamId],
     references: [teams.id],
   }),
-
+  associateSkills: many(associateSkills, {
+    relationName: "AssociateSkills",
+  }),
   candidatesAssignedAsAssessor: many(candidates, { relationName: "AssessorCandidates" }),
   candidatesAssignedAsGroomer: many(candidates, { relationName: "GroomerCandidates" }),
 }));
@@ -135,16 +167,14 @@ export const userAuditLogsRelations = relations(userAuditLogs, ({ one }) => ({
 
 export const usersSchema = createSelectSchema(users);
 export const userAuditLogsSchema = createSelectSchema(userAuditLogs);
+export const associateSkillsSchema = createSelectSchema(associateSkills);
 
 /************** Insert SChema ****************/
 
 export const usersInsertSchema = createInsertSchema(users);
 export const userAuditLogsInsertSchema = createInsertSchema(userAuditLogs);
-
-/************** Update SChema ****************/
-
-export const usersUpdateSchema = createUpdateSchema(users);
-export const userAuditLogsUpdateSchema = createUpdateSchema(userAuditLogs);
+export const associateSkillsInsertSchema = createInsertSchema(associateSkills);
 
 //  Types
 export type UserType = typeof users.$inferSelect;
+export type AssociateSkillsType = typeof associateSkills.$inferSelect;

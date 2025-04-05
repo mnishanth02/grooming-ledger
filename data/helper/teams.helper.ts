@@ -32,7 +32,6 @@ export const validateSpecificTeam = cache(async (teamId: string) => {
   const team = await getTeamByIdQuery(teamId, userId);
 
   if (!team.success) {
-    console.log("[validateSpecificTeam] redirecting to admin");
     redirect("/admin");
   }
 

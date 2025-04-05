@@ -18,7 +18,6 @@ const TeamCheck = ({ team }: TeamCheckProps) => {
     if (team?.id) {
       router.push(`/admin/${team.id}`);
     } else {
-      console.log("team not found");
       if (!isOpen) {
         onOpen();
       }

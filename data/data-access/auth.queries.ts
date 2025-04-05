@@ -2,7 +2,8 @@ import "server-only";
 
 import { lower } from "@/data/helper/db-helper";
 import db from "@/drizzle/db";
-import { users } from "@/drizzle/schema";
+import { type associateSkills, users } from "@/drizzle/schema";
+import type { CandidateType } from "@/drizzle/schema/grooming";
 import { signIn } from "@/lib/auth";
 import { hashPassword } from "@/lib/utils/hash";
 import {
@@ -12,7 +13,7 @@ import {
   type SignupSchemaType,
 } from "@/lib/validator/auth-validtor";
 import type { ApiResponse } from "@/types/api";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { AuthError } from "next-auth";
 import { z } from "zod";
 
@@ -325,7 +326,6 @@ export async function resetPasswordQuery(
     const validatedValues = ResetPasswordSchema.parse(values);
     const password = validatedValues.password;
 
-    console.log({ email, password });
     const existingUserResponse = await findUserByEmail(email);
 
     if (
@@ -360,15 +360,63 @@ export async function resetPasswordQuery(
   }
 }
 
+export type UserWithCandidates = typeof users.$inferSelect & {
+  candidatesAssignedAsAssessor?: CandidateType[];
+  candidatesAssignedAsGroomer?: CandidateType[];
+  associateSkills?: AssociateSkillWithSkill[];
+};
+
+type AssociateSkillWithSkill = typeof associateSkills.$inferSelect & {
+  skill: {
+    id: string;
+    name: string;
+  };
+};
+
 //  get all users by teamId
 export async function getAllUsersByTeamId(
   teamId: string,
-): Promise<ApiResponse<(typeof users.$inferSelect)[]>> {
+): Promise<ApiResponse<UserWithCandidates[]>> {
   try {
-    const usersData = await db
-      .select()
-      .from(users)
-      .where(and(eq(users.teamId, teamId), isNull(users.deletedAt)));
+    const usersData = await db.query.users.findMany({
+      where: eq(users.teamId, teamId),
+      with: {
+        candidatesAssignedAsAssessor: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            status: true,
+          },
+          orderBy: (candidates, { desc }) => [desc(candidates.createdAt)],
+        },
+        candidatesAssignedAsGroomer: {
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            status: true,
+          },
+          orderBy: (candidates, { desc }) => [desc(candidates.createdAt)],
+        },
+        associateSkills: {
+          columns: {
+            id: true,
+            associateId: true,
+            skillId: true,
+            proficiencyLevel: true,
+          },
+          with: {
+            skill: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     if (usersData.length === 0) {
       return {
@@ -382,7 +430,7 @@ export async function getAllUsersByTeamId(
 
     return {
       success: true,
-      data: usersData,
+      data: usersData as UserWithCandidates[],
     };
   } catch (error) {
     return {

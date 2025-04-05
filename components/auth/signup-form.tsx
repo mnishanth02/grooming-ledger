@@ -23,8 +23,6 @@ export const SignUpForm: FC<{ teams: TeamType[] }> = ({ teams }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  console.log("[] teams", teams);
-
   const form = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {

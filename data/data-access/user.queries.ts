@@ -2,11 +2,15 @@ import "server-only";
 
 import { lower } from "@/data/helper/db-helper";
 import db from "@/drizzle/db";
-import { users } from "@/drizzle/schema";
-import { candidates } from "@/drizzle/schema/grooming";
+import { associateSkills, users } from "@/drizzle/schema/auth";
+import { candidates, topics } from "@/drizzle/schema/grooming";
 import type { ApiResponse } from "@/types/api";
-import { and, eq, isNull, like, or } from "drizzle-orm";
+import { and, desc, eq, isNull, like, or } from "drizzle-orm";
 import type { CandidateWithAssessorAndGroomer } from "./candidate.queries";
+
+import "server-only";
+
+import type { OptionType } from "@/lib/validator/ui-validator";
 
 export type SearchItem = {
   id: string;
@@ -155,6 +159,71 @@ export async function searchPeopleQuery(
         message: error instanceof Error ? error.message : "An unknown error occurred",
       },
     };
+  }
+}
+
+/**
+ * Get a single associate by ID with all related data
+ */
+export async function getAssociateById(associateId: string) {
+  try {
+    // Get basic user info
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, associateId),
+    });
+
+    if (!user) return null;
+
+    // Get skills
+    const skills = await db
+      .select({
+        id: topics.id,
+        name: topics.name,
+      })
+      .from(associateSkills)
+      .innerJoin(topics, eq(topics.id, associateSkills.skillId))
+      .where(eq(associateSkills.associateId, associateId));
+
+    // Get assessor candidates
+    const assessorCandidates = await db
+      .select({
+        id: candidates.id,
+        name: candidates.name,
+        email: candidates.email,
+        status: candidates.status,
+      })
+      .from(candidates)
+      .where(eq(candidates.assignedAssessorId, associateId))
+      .orderBy(desc(candidates.updatedAt));
+
+    // Get groomer candidates
+    const groomerCandidates = await db
+      .select({
+        id: candidates.id,
+        name: candidates.name,
+        email: candidates.email,
+        status: candidates.status,
+      })
+      .from(candidates)
+      .where(eq(candidates.assignedGroomerId, associateId))
+      .orderBy(desc(candidates.updatedAt));
+
+    // Format skills as option types
+    const formattedSkills: OptionType[] = skills.map((skill) => ({
+      value: skill.id,
+      label: skill.name,
+    }));
+
+    // Return complete associate data
+    return {
+      ...user,
+      skills: formattedSkills,
+      candidatesAssignedAsAssessor: assessorCandidates,
+      candidatesAssignedAsGroomer: groomerCandidates,
+    };
+  } catch (error) {
+    console.error("Error fetching associate by ID:", error);
+    return null;
   }
 }
 

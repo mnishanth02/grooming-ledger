@@ -138,7 +138,9 @@ export default function SearchCommand() {
       );
 
     const href =
-      item.type === "candidate" ? `/admin/candidates/${item.id}` : `/admin/associates/${item.id}`;
+      item.type === "candidate"
+        ? `/admin/${teamId}/candidates/${item.id}`
+        : `/admin/${teamId}/associates/${item.id}`;
 
     const isSelected = selectedItem === item.id;
 

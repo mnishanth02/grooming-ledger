@@ -14,6 +14,8 @@ export {
   accountsRelations,
   usersRelations,
   userAuditLogsRelations,
+  associateSkills,
+  associateSkillsRelations,
 } from "./schema/auth";
 
 export {
@@ -26,4 +28,5 @@ export {
   topicsRelations,
   subTopics,
   subTopicsRelations,
+  teamsRelations,
 } from "./schema/grooming";
