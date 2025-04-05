@@ -1,3 +1,4 @@
+import type { OptionType } from "@/lib/validator/ui-validator";
 import { relations } from "drizzle-orm";
 import { date, index, integer, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
@@ -187,3 +188,6 @@ export type TeamType = typeof teams.$inferSelect;
 export type CandidateType = typeof candidates.$inferSelect;
 export type CandidateSkillsType = typeof candidateSkills.$inferSelect;
 export type TopicsType = typeof topics.$inferSelect;
+
+//  Custom Types
+export type FullCandidateData = CandidateType & { skills?: OptionType[] };

@@ -1,208 +1,237 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { AlertModal } from "@/components/modals/alert-modal";
 import { Separator } from "@/components/ui/separator";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { format } from "date-fns";
-import { CalendarDays, ChevronRight, Mail, MoreHorizontal, Pencil, UserCheck } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { createCandidate, deleteCandidate, updateCandidate } from "@/data/actions/candidate.action";
+import { CandidateSchema, type CandidateSchemaType } from "@/lib/validator/ui-validator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
+import { memo, useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import type { UserType } from "@/drizzle/schema/auth";
+import type { CandidateType } from "@/drizzle/schema/grooming";
+import type { OptionType } from "@/lib/validator/ui-validator";
+import CandidateSheetForm from "./candidateSheetForm";
+import CandidateSheetHeader from "./candidateSheetHeader";
+import CandidateSheetView from "./candidateSheetView";
 import type { CandidateColumn } from "./columns";
+import { getDefaultFormValues, prepareSubmitData } from "./utils/candidate-helpers";
 
 interface CandidateSheetProps {
   isOpen: boolean;
   onClose: () => void;
   candidate?: CandidateColumn;
+  associates?: UserType[] | null;
+  fullData?: (CandidateType & { skills?: OptionType[] }) | null;
+  isNewCandidate?: boolean;
 }
 
-export function CandidateSheet({ isOpen, onClose, candidate }: CandidateSheetProps) {
+export const CandidateSheet = memo(function CandidateSheet({
+  isOpen,
+  onClose,
+  candidate,
+  associates = null,
+  fullData = null,
+  isNewCandidate = false,
+}: CandidateSheetProps) {
   const router = useRouter();
   const params = useParams();
+  const teamId = params.teamId as string;
 
-  if (!candidate) return null;
+  // UI state
+  const [viewMode, setViewMode] = useState<"view" | "edit">("view");
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase();
-  };
+  // Form setup
+  const form = useForm<CandidateSchemaType>({
+    resolver: zodResolver(CandidateSchema),
+    defaultValues: getDefaultFormValues(fullData),
+    mode: "onChange", // Enable validation on change for better UX
+  });
 
-  // Format status color based on value
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "new":
-        return "bg-primary/10 text-primary border-primary/20";
-      case "pre_assessment_pending":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "pre_assessment_completed":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "assessment_passed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "assessment_failed":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "grooming_in_progress":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "grooming_completed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "post_assessment_pending":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "post_assessment_completed":
-        return "bg-blue-50 text-blue-700 border-blue-200";
-      case "client_interview_scheduled":
-        return "bg-purple-50 text-purple-700 border-purple-200";
-      case "client_interview_failed":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "re_grooming_scheduled":
-        return "bg-orange-50 text-orange-700 border-orange-200";
-      case "placed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "terminated":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "in progress":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      case "completed":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "rejected":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      default:
-        return "bg-muted text-muted-foreground border-muted-foreground/20";
+  // Reset view mode when sheet opens/closes and reset form when needed
+  useEffect(() => {
+    if (!isOpen) {
+      // When closing, reset after a delay to prevent visual jumps
+      const timer = setTimeout(() => {
+        setViewMode("view");
+        setServerError(null);
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  };
 
-  const handleEdit = () => {
-    router.push(`/admin/${params.teamId}/candidates/${candidate.id}`);
-  };
+    // Initial setup for new/existing candidates
+    if (isNewCandidate) {
+      setViewMode("edit");
+      form.reset(getDefaultFormValues(null));
+    } else if (isOpen && !viewMode.includes("edit")) {
+      // Only set view mode to "view" on initial sheet open, not on subsequent props changes
+      setViewMode("view");
+    }
+  }, [isOpen, isNewCandidate, form, viewMode]);
+
+  // Setup form data when fullData changes and we're in edit mode
+  useEffect(() => {
+    if (isOpen && viewMode === "edit" && fullData) {
+      form.reset(getDefaultFormValues(fullData));
+    }
+  }, [fullData, viewMode, isOpen, form]);
+
+  // Action hooks
+  const { execute: executeCreate, isPending: isCreating } = useAction(createCandidate, {
+    onExecute: () => setServerError(null),
+    onSuccess: (data) => {
+      router.refresh();
+      toast.success(data.data?.message || "Candidate created successfully");
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      const errorMsg = error.error?.serverError || "Something went wrong";
+      setServerError(errorMsg);
+      toast.error(errorMsg);
+    },
+  });
+
+  const { execute: executeUpdate, isPending: isUpdating } = useAction(updateCandidate, {
+    onExecute: () => setServerError(null),
+    onSuccess: (data) => {
+      toast.success(data.data?.message || "Candidate updated successfully");
+      router.refresh();
+      setViewMode("view");
+    },
+    onError: (error) => {
+      const errorMsg = error.error?.serverError || "Something went wrong";
+      setServerError(errorMsg);
+      toast.error(errorMsg);
+    },
+  });
+
+  const { execute: executeDelete, isPending: isDeleting } = useAction(deleteCandidate, {
+    onExecute: () => setServerError(null),
+    onSuccess: (data) => {
+      toast.success(data.data?.message || "Candidate deleted successfully");
+      onClose();
+      router.refresh();
+    },
+    onError: (error) => {
+      const errorMsg = error.error?.serverError || "Something went wrong";
+      setServerError(errorMsg);
+      toast.error(errorMsg);
+    },
+    onSettled: () => setShowDeleteAlert(false),
+  });
+
+  // Event handlers - memoized to prevent unnecessary re-renders
+  const handleEditClick = useCallback(() => {
+    if (fullData) {
+      form.reset(getDefaultFormValues(fullData));
+    }
+    setViewMode("edit");
+  }, [fullData, form]);
+
+  const handleDeleteClick = useCallback(() => {
+    setShowDeleteAlert(true);
+  }, []);
+
+  const handleViewFullProfile = useCallback(() => {
+    if (candidate) {
+      router.push(`/admin/${teamId}/candidates/${candidate.id}`);
+    }
+  }, [candidate, router, teamId]);
+
+  const handleCancelEdit = useCallback(() => {
+    if (isNewCandidate) {
+      onClose();
+    } else {
+      setViewMode("view");
+    }
+  }, [isNewCandidate, onClose]);
+
+  const handleFormSubmit = useCallback(
+    async (data: CandidateSchemaType) => {
+      setServerError(null);
+      const submitData = prepareSubmitData(data, teamId);
+
+      try {
+        if (isNewCandidate) {
+          await executeCreate(submitData);
+        } else if (fullData) {
+          await executeUpdate({
+            ...submitData,
+            candidateId: fullData.id || "",
+            onboardingDate: submitData.onboardingDate?.toString() || "",
+          });
+        }
+      } catch (error) {
+        // This is handled by the action hooks, but catch here for TypeScript
+        console.error("Form submission error:", error);
+      }
+    },
+    [executeCreate, executeUpdate, fullData, isNewCandidate, teamId],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (fullData) {
+      executeDelete({
+        candidateId: fullData.id,
+        teamId: teamId,
+      });
+    }
+  }, [executeDelete, fullData, teamId]);
+
+  const isLoading = isCreating || isUpdating || isDeleting;
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full max-w-md overflow-y-auto border-l sm:max-w-lg">
-        <SheetHeader className="relative space-y-1 pb-4">
-          <div className="flex items-start gap-4">
-            <Avatar className="h-12 w-12 border">
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {getInitials(candidate.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-1">
-              <SheetTitle className="font-semibold text-xl">{candidate.name}</SheetTitle>
-              <SheetDescription className="flex items-center text-muted-foreground text-sm">
-                <Mail className="mr-1 h-4 w-4" />
-                {candidate.email}
-              </SheetDescription>
-            </div>
-          </div>
+    <>
+      <AlertModal
+        isOpen={showDeleteAlert}
+        onClose={() => setShowDeleteAlert(false)}
+        onConfirm={handleDelete}
+        loading={isDeleting}
+      />
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent
+          side="right"
+          className="w-full max-w-md overflow-y-auto border-l p-5 sm:max-w-xl"
+        >
+          <CandidateSheetHeader
+            viewMode={viewMode}
+            candidate={candidate}
+            isNewCandidate={isNewCandidate}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
+            onViewFullProfile={handleViewFullProfile}
+          />
 
-          <div className="mt-4 flex items-center justify-between">
-            <Badge
-              className={`rounded-full px-2 py-1 font-medium text-xs ${getStatusColor(candidate.status)}`}
-            >
-              {candidate.status}
-            </Badge>
+          <Separator className="mb-2" />
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={handleEdit}>
-                <Pencil className="mr-1 h-3.5 w-3.5" />
-                Edit
-              </Button>
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>View full profile</DropdownMenuItem>
-                  <DropdownMenuItem>Send email</DropdownMenuItem>
-                  <DropdownMenuItem>Download details</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </SheetHeader>
-
-        <Separator />
-
-        <div className="space-y-6 px-3 pt-2">
-          <div className="rounded-lg bg-muted/50 p-4">
-            <h3 className="mb-3 font-medium text-sm">Team Members</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="rounded-full bg-primary/10 p-1.5">
-                  <UserCheck className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Groomer</div>
-                  <div className="text-muted-foreground text-sm">{candidate.groomer}</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="rounded-full bg-primary/10 p-1.5">
-                  <UserCheck className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Assessor</div>
-                  <div className="text-muted-foreground text-sm">{candidate.assessor}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-muted/50 p-4">
-            <h3 className="mb-3 font-medium text-sm">Onboarding Details</h3>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-primary/10 p-1.5">
-                <CalendarDays className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <div className="font-medium text-sm">Onboarding Date</div>
-                <div className="text-muted-foreground text-sm">
-                  {format(new Date(candidate.onboardingDate), "PPP")}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-muted/50 p-4">
-            <h3 className="mb-3 font-medium text-sm">Candidate Actions</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="w-full justify-start" size="sm">
-                <Mail className="mr-2 h-4 w-4" />
-                Email Candidate
-              </Button>
-              <Button variant="outline" className="w-full justify-start" size="sm">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Schedule Meeting
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <SheetFooter className="mt-6">
-          <Button className="w-full" size="sm" onClick={handleEdit}>
-            Edit Candidate
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+          {viewMode === "edit" ? (
+            <CandidateSheetForm
+              form={form}
+              isLoading={isLoading}
+              serverError={serverError}
+              associates={associates}
+              teamId={teamId}
+              isNewCandidate={isNewCandidate}
+              onSubmit={handleFormSubmit}
+              onCancel={handleCancelEdit}
+            />
+          ) : candidate && fullData ? (
+            <CandidateSheetView
+              candidate={candidate}
+              fullData={fullData}
+              onEdit={handleEditClick}
+              onViewFullProfile={handleViewFullProfile}
+            />
+          ) : null}
+        </SheetContent>
+      </Sheet>
+    </>
   );
-}
+});

@@ -26,16 +26,21 @@ export const CandidateSchema = z.object({
       message: "Only PwC email addresses are allowed",
     }),
   phone: z.string().min(1, "Phone is required"),
-  onboardingDate: z.union([z.string(), z.date()]).transform((val) => {
-    if (val instanceof Date) {
-      return parseDateToUTC(val.toISOString());
-    }
-    // If it's already a string, ensure it's a valid date
-    if (!Number.isNaN(Date.parse(val))) {
-      return parseDateToUTC(val);
-    }
-    throw new Error("Invalid date format");
-  }),
+  onboardingDate: z.union([z.string(), z.date()]).refine(
+    (val) => {
+      if (val instanceof Date) {
+        return parseDateToUTC(val.toISOString());
+      }
+      // If it's already a string, ensure it's a valid date
+      if (!Number.isNaN(Date.parse(val))) {
+        return parseDateToUTC(val);
+      }
+      return false;
+    },
+    {
+      message: "Invalid date format",
+    },
+  ),
   yearsOfExperience: z.coerce.number().min(0, "Years of experience must be at least 0"),
   resumeUrl: z.string().optional(),
   designation: z.string().nullable().optional(),

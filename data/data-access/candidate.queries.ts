@@ -1,7 +1,7 @@
 import "server-only";
 
 import db from "@/drizzle/db";
-import type { users } from "@/drizzle/schema";
+import type { topics, users } from "@/drizzle/schema";
 import { candidates } from "@/drizzle/schema/grooming";
 import { candidateSkills } from "@/drizzle/schema/grooming";
 import type { OptionType } from "@/lib/validator/ui-validator";
@@ -188,6 +188,7 @@ export async function getCandidateByIdQuery(
 export type CandidateWithAssessorAndGroomer = typeof candidates.$inferSelect & {
   assignedAssessor: typeof users.$inferSelect;
   assignedGroomer: typeof users.$inferSelect;
+  skills: (typeof candidateSkills.$inferSelect & { skill: typeof topics.$inferSelect })[];
 };
 
 export async function getAllCandidatesByTeamIdQuery(
@@ -199,13 +200,18 @@ export async function getAllCandidatesByTeamIdQuery(
       with: {
         assignedAssessor: true,
         assignedGroomer: true,
+        skills: {
+          with: {
+            skill: true,
+          },
+        },
       },
     });
 
     if (allCandidates && allCandidates.length > 0) {
       return {
         success: true,
-        data: allCandidates,
+        data: allCandidates as CandidateWithAssessorAndGroomer[],
       };
     }
 

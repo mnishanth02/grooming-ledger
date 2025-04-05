@@ -1,10 +1,9 @@
 "use server";
-
-import { candidateStatusEnum } from "@/drizzle/schema/enums";
 import type { candidates } from "@/drizzle/schema/grooming";
 import { ActionError } from "@/lib/error";
 import { teamActionClient } from "@/lib/utils/safe-action";
-import { CandidateSchema, OptionSchema } from "@/lib/validator/ui-validator";
+import { CandidateSchema } from "@/lib/validator/ui-validator";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   createCandidateQuery,
@@ -23,16 +22,16 @@ export const createCandidate = teamActionClient
   .schema(
     CandidateSchema.extend({
       teamId: z.string().min(1, "Team is required"),
-      skills: z.array(OptionSchema).optional().default([]),
     }),
   )
   .action(async ({ parsedInput }) => {
     // Extract skills from input
-    const { skills, ...candidateInput } = parsedInput;
+    const { skills, teamId, ...candidateInput } = parsedInput;
 
     // Convert Date to ISO string
     const candidateData = {
       ...candidateInput,
+      teamId,
       onboardingDate: new Date(candidateInput.onboardingDate).toISOString(),
     };
 
@@ -56,6 +55,9 @@ export const createCandidate = teamActionClient
       }
     }
 
+    // Revalidate the candidates page
+    revalidatePath(`/admin/${teamId}/candidates`);
+
     return {
       candidate: result.data,
       message: "Candidate created successfully",
@@ -69,21 +71,8 @@ export const updateCandidate = teamActionClient
     requiresAuth: true,
   })
   .schema(
-    z.object({
+    CandidateSchema.extend({
       candidateId: z.string().min(1, "Candidate ID is required"),
-      name: z.string().min(1).max(255).optional(),
-      email: z.string().email().optional(),
-      onboardingDate: z.string().optional(),
-      status: z.enum(candidateStatusEnum.enumValues).optional(),
-      teamId: z.string().nullable().optional(),
-      designation: z.string().nullable().optional(),
-      department: z.string().nullable().optional(),
-      employeeId: z.string().nullable().optional(),
-      assignedAssessorId: z.string().nullable().optional(),
-      assignedGroomerId: z.string().nullable().optional(),
-      clientInterviewQuestions: z.string().nullable().optional(),
-      placementDetails: z.string().nullable().optional(),
-      skills: z.array(OptionSchema).optional(),
     }),
   )
   .action(async ({ parsedInput }) => {
