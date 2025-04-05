@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import ThemeToggle from "../common/theme-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { BreadCrumTitle } from "./breadcrum-title";
+import SearchCommand from "./search-command";
 
 export function Header() {
   return (
@@ -26,6 +27,7 @@ export function Header() {
           </Breadcrumb>
         </div>
         <div className="flex items-center gap-2">
+          <SearchCommand />
           <ThemeToggle />
         </div>
       </div>
