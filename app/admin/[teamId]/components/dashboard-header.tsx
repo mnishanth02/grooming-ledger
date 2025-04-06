@@ -1,7 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TeamType } from "@/drizzle/schema/grooming";
-import { CalendarRange, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
 interface DashboardHeaderProps {
   team: TeamType;
@@ -23,7 +22,7 @@ const DashboardHeader = ({ team }: DashboardHeaderProps) => {
           </CardDescription>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9">
             <CalendarRange className="mr-2 h-4 w-4" />
             View Calendar
@@ -31,7 +30,7 @@ const DashboardHeader = ({ team }: DashboardHeaderProps) => {
           <Button size="sm" className="h-9">
             Add Candidate
           </Button>
-        </div>
+        </div> */}
       </CardHeader>
     </Card>
   );

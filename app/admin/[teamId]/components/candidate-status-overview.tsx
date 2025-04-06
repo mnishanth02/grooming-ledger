@@ -138,7 +138,7 @@ const CandidateStatusOverview = ({ candidates }: CandidateStatusOverviewProps) =
                 <Tooltip
                   formatter={(value) => [`${value} candidates`]}
                   contentStyle={{
-                    backgroundColor: "var(--background)",
+                    backgroundColor: "var(--accent)",
                     border: "1px solid var(--border)",
                     borderRadius: "6px",
                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",

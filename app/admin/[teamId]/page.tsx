@@ -30,7 +30,7 @@ const TeamDashboardPage = async ({ params }: DashboardPageProps) => {
     candidatesResponse.success && candidatesResponse.data ? candidatesResponse.data : [];
 
   return (
-    <div className="flex flex-col gap-4 px-4">
+    <div className="flex flex-col gap-4 px-8">
       <DashboardHeader team={team} />
 
       <Suspense
