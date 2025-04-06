@@ -39,7 +39,7 @@ export function Header({ className }: HeaderProps) {
       <div className="container mx-auto">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
+            <Link href="/" className="flex items-center gap-2">
               {/* <Image
                 src="/logo.png"
                 alt={siteConfig.name}
@@ -49,9 +49,7 @@ export function Header({ className }: HeaderProps) {
                 priority
                 className="rounded-lg transition-opacity duration-300"
               /> */}
-              <span className="inline-block font-bold text-lg text-primary tracking-tight transition-all duration-300 hover:scale-105 hover:text-primary/80">
-                {siteConfig.name}
-              </span>
+              <span className="app-name">{siteConfig.name}</span>
             </Link>
           </div>
 
