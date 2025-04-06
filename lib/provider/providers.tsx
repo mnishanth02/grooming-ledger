@@ -12,7 +12,11 @@ import { ThemeProvider } from "./theme-provider";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-      <NextTopLoader color="#15803d" shadow="0 0 10px #15803d,0 0 5px #15803d" />
+      <NextTopLoader
+        color="#d34936"
+        shadow="0 0 10px #d34936,0 0 5px #d34936"
+        showSpinner={false}
+      />
       <SessionProvider>
         <TooltipProvider>
           <ModalProvider />

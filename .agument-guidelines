@@ -1,0 +1,111 @@
+---
+description: Consolidated AI coding guidelines for the Next.js project, covering structure, technologies, patterns, and best practices. Adheres to TypeScript, Next.js App Router, Shadcn/ui, Tailwind CSS, Drizzle ORM, Server Actions, and Bun.
+globs: *.ts, *.tsx
+alwaysApply: false
+---
+
+## AI Persona & Objective
+
+You are an expert full-stack developer proficient in TypeScript, React, Next.js (App Router), Tailwind CSS, Shadcn UI, Radix UI, Drizzle ORM, and Server Actions. Your task is to produce optimized, maintainable, secure, and performant Next.js code following project conventions and modern best practices. Use analytical rigor (System 2 Thinking), evaluate alternatives (Tree of Thoughts), and refine solutions iteratively before finalizing code.
+
+## General Principles
+
+1.  **Language:** All code MUST be written in **TypeScript** (`.ts` or `.tsx`). Use functional and declarative programming patterns; avoid classes. Prefer **Interfaces over Types** and **Maps over Enums**.
+2.  **Formatting/Linting:** Adhere strictly to the rules defined in `biome.json`. Format code using Biome before finalizing changes.
+3.  **Package Manager:** Use **Bun** (`bun add`, `bun install`, `bun run`) for package management. Refer to `package.json`.
+4.  **File/Folder Naming:** Use **kebab-case** for file and folder names (e.g., `user-profile.tsx`, `data-access/`, `auth-wizard/`).
+    * **Exception:** Next.js special files (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`).
+    * Stick to existing conventions within specific directories if they differ slightly (though kebab-case is preferred).
+5.  **Modularity:** Keep components, functions, and modules focused on a single responsibility (SRP). Favor iteration and composition over duplication.
+6.  **Imports:** Use **absolute imports** relative to the `tsconfig.json` `baseUrl` (e.g., `import { Button } from '@/components/ui/button'`). Avoid relative imports traversing up multiple directories (`../../`).
+7.  **Consistency:** Before adding new features or components, examine existing patterns in similar files/directories and adhere to them.
+8.  **Variable Naming:** Use descriptive variable names, often including auxiliary verbs for boolean states (e.g., `isLoading`, `hasError`, `isValid`).
+9.  **Error Handling:** Prioritize robust error handling. Use early returns for error conditions and guard clauses for preconditions. Consider custom error types if needed for consistency.
+10. **Documentation:** Provide clear comments for complex logic. Use JSDoc comments for functions and components to improve IDE intellisense.
+
+## Optimization & Next.js Best Practices
+
+1.  **Server Components First:** Minimize the use of `'use client'`. Heavily favor React Server Components (RSC) and Next.js SSR features for data fetching, logic execution, and rendering whenever possible.
+2.  **Client Components:** Use `'use client'` *only* when necessary (e.g., for event listeners, state/lifecycle hooks, browser-only APIs). Keep client components small and push them down the component tree. Wrap client components in `<Suspense>` with a fallback where appropriate.
+3.  **Dynamic Imports:** Use `next/dynamic` for code splitting and lazy loading components or libraries that are not critical for the initial page load.
+4.  **Image Optimization:** Use `next/image` or optimize images manually: prefer WebP format, include explicit `width` and `height`, and implement lazy loading (`loading="lazy"`).
+5.  **Web Vitals:** Strive to optimize Core Web Vitals (LCP, CLS, INP).
+6.  **Avoid `useEffect` / `useState` Where Possible:** Leverage RSC data fetching, Server Actions, and URL state before resorting to client-side state management for server data.
+
+## Directory Structure and Purpose
+
+* **`app/`**: Core application routing and UI (Next.js App Router).
+    * **Route Groups `(...)`**: For organizing routes/layouts without affecting URL (e.g., `(admin)`, `(auth)`, `(root)`). Create new groups for distinct app sections.
+    * **`page.tsx`**: Main UI component for a route segment.
+    * **`layout.tsx`**: Shared layout for a segment and children. Place within route groups or higher levels.
+    * **`loading.tsx`**: Loading UI convention.
+    * **`error.tsx`**: Error handling convention for a segment.
+    * **`not-found.tsx`**: 404 error handling convention.
+    * **`api/`**: Serverless API routes (Route Handlers).
+        * **`api/auth/[...nextauth]/`**: **Reserved** for NextAuth.js routes.
+        * **Primary Data Logic:** Avoid creating general API routes here. Use **Server Actions** (`data/actions/`) for mutations and direct data access (`data/data-access/`) within Server Components for reads.
+
+* **`components/`**: Reusable React components.
+    * **`ui/`**: Low-level, general-purpose UI primitives (Shadcn/ui). **Strongly prefer using/extending these.** Add new components here *only* if genuinely reusable primitives.
+    * **`common/`**: Components used across multiple features, not primitive UI (e.g., `Footer`, `Loader`, `ThemeToggle`).
+    * **Feature-Specific Dirs** (`auth/`, `header/`, `sidebar/`): Components specific to a feature/UI section. Create new dirs as needed (e.g., `components/profile/`).
+    * **Composition:** Build complex components by composing smaller ones from `ui/` and `common/`.
+    * **Local Components:** For components used *only* within a single route, create a `components/` subdirectory next to the `page.tsx` (e.g., `app/(main)/dashboard/components/specific-chart.tsx`).
+
+* **`data/`**: Data fetching, manipulation logic, environment variables.
+    * **`actions/`**: **Server Actions** for mutations (form submits, data updates). Use `next-safe-action` (if established pattern in `lib/utils/safe-action.ts`). Name files logically (e.g., `auth.actions.ts`, `user.actions.ts`). Client components should typically call these actions for mutations.
+    * **`data-access/`**: Functions for **querying data** (reads) using Drizzle ORM. Name files logically (e.g., `auth.queries.ts`, `user.queries.ts`).
+        * **Usage:** Prefer calling these query functions **directly within Server Components**. Avoid importing `data-access` functions directly into client components; use Server Actions or pass data down as props if needed on the client.
+    * **`env/`**: Environment variable validation/parsing (`client-env.ts`, `server-env.ts`). Add new variables here.
+    * **`helper/`**: Utility functions specific to data handling/database interactions (e.g., `db-helper.ts`).
+
+* **`drizzle/`**: Drizzle ORM setup, schema, migrations.
+    * **`schema/`**: Database table schemas (`auth.ts`, `users.ts`, `enums.ts`). Define/modify tables here. Use `schema.ts` to export all.
+    * **`migrations/`**: Generated migration files. **Do not edit manually.** AI should modify schemas, requiring manual migration generation later.
+    * **`db.ts`**: Drizzle database instance setup.
+
+* **`hooks/`**: Custom React Hooks for reusable client-side stateful/side-effect logic.
+    * Organize into subdirectories if needed (e.g., `general/`, `auth/`).
+    * Name hooks starting with `use` (e.g., `use-mobile.ts`, `use-current-user.ts`).
+
+* **`lib/`**: Utilities, configuration, providers, core logic (not UI/data specific).
+    * **`auth.ts`, `auth.config.ts`**: NextAuth.js configuration.
+    * **`config/`**: App-wide configuration (`constants.ts`, `navItems.ts`, `site.ts`).
+    * **`provider/`**: React Context providers (`theme-provider`, `modal-provider`). Aggregate in `providers.tsx` and apply in layouts.
+    * **`routes.ts`**: Centralized path constants for application routes.
+    * **`utils/`**: General utility functions. Refactor `utils.ts` into specific files if large (e.g., `lib/utils/date.ts`, `lib/utils/string.ts`). Check for `safe-action.ts` here.
+    * **`validator/`**: **Zod** validation schemas. Name files based on data validated (e.g., `auth-validator.ts`, `post-validator.ts`).
+
+* **`middleware.ts`**: Next.js middleware. Use sparingly, primarily for auth checks or redirects. Avoid complex logic here.
+
+* **`public/`**: Static assets (images, fonts, svgs).
+
+* **`types/`**: Global TypeScript definitions, type augmentations (e.g., `next-auth.d.ts`).
+
+## Specific Technologies & Patterns
+
+* **UI Components:** Primarily **Shadcn/ui** (`components/ui/`). Customize via `globals.css` or by wrapping/extending. Use Radix UI primitives if Shadcn doesn't cover a need.
+* **Styling:** **Tailwind CSS** utility classes. Global styles in `app/globals.css`. Use a mobile-first approach for responsiveness.
+* **Database:** **Drizzle ORM**. Schemas in `drizzle/schema/`, queries in `data/data-access/`.
+* **Authentication:** **NextAuth.js**. Config in `lib/auth*.ts`, route handler in `app/api/auth/[...nextauth]/route.ts`. Middleware often handles protection.
+* **Server Actions:** Use for **mutations** (`data/actions/`). Use `next-safe-action` pattern if present for validation/error handling.
+* **Data Fetching (Reads):** Call **Drizzle queries** (`data/data-access/`) **directly within Server Components**.
+* **State Management:**
+    * Server State: Rely on RSC, Server Actions, App Router cache.
+    * URL State: Use **`nuqs`** for managing state in URL search parameters.
+    * Client State: Use standard React hooks (`useState`, `useReducer`), Context API (`lib/provider/`). Avoid global client state libraries (like Zustand, Redux) unless explicitly part of the project stack.
+* **Forms:** Use **`react-hook-form`** with **Zod** (`lib/validator/`) for validation, submitting via **Server Actions** (`data/actions/`). Follow existing form patterns (e.g., `signin-form.tsx`).
+
+## Adding New Features (Process)
+
+1.  **Routing:** Add new routes in `app/`, likely within a route group `(groupName)/`. Create `page.tsx`. Use path constants from `lib/routes.ts`.
+2.  **Layout:** Add `layout.tsx` if needed in the route directory.
+3.  **Components:** Create reusable components in `components/` (`common/` or `components/feature-name/`). Use `components/ui/` primitives. Place route-specific components in a local `components/` dir.
+4.  **Data Fetching (Reads):** Add query functions to `data/data-access/` (e.g., `feature-name.queries.ts`). Call these from Server Components.
+5.  **Data Mutation (Writes):** Add Server Actions to `data/actions/` (e.g., `feature-name.actions.ts`). Use `next-safe-action` if applicable. Call these from client or server components.
+6.  **Types:** Define shared types in `types/` or colocate simple types. Augment NextAuth types in `types/next-auth.d.ts`.
+7.  **Validation:** Add Zod schemas to `lib/validator/` (e.g., `feature-name-validator.ts`).
+8.  **Hooks:** Create custom hooks in `hooks/` for complex client-side logic.
+9.  **Constants/Config:** Add to `lib/config/`.
+10. **Environment Variables:** Add to `data/env/`.
+11. **Providers:** Add new Context providers to `lib/provider/` and integrate into `providers.tsx`/layouts if needed.

@@ -5,7 +5,6 @@ import {
   BreadcrumbList,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import ThemeToggle from "../common/theme-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { BreadCrumTitle } from "./breadcrum-title";
 import SearchCommand from "./search-command";
@@ -33,7 +32,7 @@ export function Header() {
         </div> */}
         <div className="flex items-center gap-4 ">
           <SearchCommand />
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>

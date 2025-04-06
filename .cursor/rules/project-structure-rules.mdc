@@ -1,13 +1,13 @@
 ---
 description: project structure when files need to be created/updated
-globs: 
+globs:
 alwaysApply: false
 ---
 ## General Principles
 
 1.  **Language:** All code MUST be written in **TypeScript** (`.ts` or `.tsx`).
 2.  **Formatting/Linting:** Adhere strictly to the rules defined in `biome.json`. Format code using Biome before committing or finalizing changes.
-3.  **Package Manager:** Use **Bun** (`bun add`, `bun install`, `bun run`) for package management. Refer to `bun.lock` for dependencies.
+3.  **Package Manager:** Use **Bun** (`bun add`, `bun install`, `bun run`) for package management. Refer to `package.json` for dependencies.
 4.  **File Naming:** Use **kebab-case** for file and folder names (e.g., `user-profile.tsx`, `data-access`). Exception: Next.js special files (`page.tsx`, `layout.tsx`) and React components (file nameing  like `user-profles.tsx`). Stick to existing conventions within directories.
 5.  **Modularity:** Keep components, functions, and modules focused on a single responsibility.
 6.  **Imports:** Use absolute imports relative to the `tsconfig.json` `baseUrl` (e.g., `import { Button } from '@/components/ui/button'`). Avoid relative imports that traverse up many directories (`../../`).
@@ -24,17 +24,20 @@ alwaysApply: false
     *   **`not-found.tsx`**: Convention for handling 404 errors.
     *   **`api/`**: Serverless API routes (Route Handlers).
         *   **`api/auth/[...nextauth]/`**: Reserved for NextAuth.js authentication routes. Do not place other API routes here.
-        *   New API routes should be placed under `app/api/` following a logical path structure (e.g., `app/api/users/route.ts`, `app/api/posts/[postId]/route.ts`).
+        *   we will not build any API route here, we will be using server actions for all the api routes
 
 *   **`components/`**: Reusable React components.
     *   **`ui/`**: Low-level, general-purpose UI components (likely Shadcn/ui). **Prefer using or extending existing components from here.** Add new components here only if they are genuinely reusable, primitive UI elements.
     *   **`common/`**: Components used across multiple features but not primitive UI elements (e.g., `Footer`, `Loader`, `ThemeToggle`).
     *   **Feature-Specific Directories** (`auth/`, `header/`, `sidebar/`): Components specific to a particular feature or section of the UI. Create new directories here for new features (e.g., `components/profile/`, `components/settings/`).
     *   **Composition:** Favor composing complex components from smaller ones found in `ui/` and `common/`.
+    *   For Individual components which no need to be shared placec the component in the same directory as the page.tsx file by creating a new directory "components".
 
 *   **`data/`**: Data fetching, manipulation logic, and related configurations.
     *   **`actions/`**: Server Actions for mutations (e.g., form submissions, data updates). Name files logically, often related to the feature or schema (e.g., `auth.actions.ts`, `post.actions.ts`). Use `next-safe-action` if that's the established pattern (`lib/utils/safe-action.ts`).
     *   **`data-access/`**: Functions responsible for querying data from the database (reads). Use Drizzle ORM. Name files logically (e.g., `auth.queries.ts`, `user.queries.ts`).
+    *   Files within the `data-access/` should not be imported directly in the UI components. Instead, use Server Actions in `data/actions/` to fetch and mutate data.
+    *   Always prefer databse calls in the server components directly to `data-access/**`
     *   **`env/`**: Environment variable validation and parsing (`client-env.ts`, `server-env.ts`). Add new environment variables here.
     *   **`helper/`**: Utility functions specifically related to data handling or database interactions (e.g., `db-helper.ts`).
 
@@ -53,10 +56,9 @@ alwaysApply: false
     *   **`config/`**: Application-wide configuration (`constants.ts`, `navItems.ts`, `site.ts`).
     *   **`provider/`**: React Context providers (`theme-provider`, `modal-provider`, etc.). Wrap the application in necessary providers within `app/layout.tsx` or specific layouts, using the main `providers.tsx` aggregator if appropriate.
     *   **`utils/`**: General utility functions. If this grows large, consider creating subdirectories (e.g., `lib/utils/date.ts`, `lib/utils/string.ts`). `utils.ts` might need refactoring into more specific files.
-    *   **`validator/`**: Validation schemas (e.g., using Zod). Name files based on the data they validate (e.g., `auth-validator.ts`, `profile-validator.ts`).
-    *   **`routes.ts`**: Centralized definition of application route paths. Use these constants for navigation and links.
+    *   **`validator/`**: Validation schemas (e.g., using Zod). Name files based on the data they validate (e.g., `ui-validator.ts`).
 
-*   **`middleware.ts`**: Next.js middleware for handling requests before they reach the page or API route (e.g., authentication checks, redirects).
+*   **`middleware.ts`**: Next.js middleware for handling requests before they reach the page or API route. avoaid adding any logingic here.
 
 *   **`public/`**: Static assets (images, fonts, svg files) directly served.
 

@@ -1,12 +1,12 @@
-import { Separator } from "../ui/separator";
-
 const Footer = () => {
   return (
     <footer>
-      <div className="container mx-auto py-6">
-        <Separator />
-        <div className="pt-6 text-center text-sm">
-          <p>© {new Date().getFullYear()} PwC Grooming Hub. All rights reserved.</p>
+      <div className="container mx-auto py-4">
+        <div className="pt-5 text-center text-sm">
+          <p className="text-xs">Build by Nishanth Murugan</p>
+          <p className="text-muted-foreground text-xs">
+            © {new Date().getFullYear()} PwC Grooming Hub. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

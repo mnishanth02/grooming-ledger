@@ -51,8 +51,20 @@ export const CandidateSchema = z.object({
   skills: z.array(OptionSchema).optional().default([]),
 });
 
+const TeamsSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Team name is required")
+    .max(255, "Team name cannot exceed 255 characters"),
+  description: z
+    .string()
+    .min(1, "Team description is required")
+    .max(255, "Team description cannot exceed 255 characters"),
+});
+
 // Types
 
 export type TeamSchemaType = z.infer<typeof TeamSchema>;
 export type CandidateSchemaType = z.infer<typeof CandidateSchema>;
 export type OptionType = z.infer<typeof OptionSchema>;
+export type TeamsSchemaType = z.infer<typeof TeamsSchema>;
