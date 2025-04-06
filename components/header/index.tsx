@@ -1,6 +1,4 @@
 "use client";
-
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -9,7 +7,6 @@ import { siteConfig } from "@/lib/config/site";
 import { cn } from "@/lib/utils";
 
 import { MobileNav } from "./MobileNav";
-import { Nav } from "./Nav";
 import { UserNav } from "./user-nav";
 
 interface HeaderProps {
@@ -43,7 +40,7 @@ export function Header({ className }: HeaderProps) {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/" className="flex items-center gap-2 transition-transform hover:scale-105">
-              <Image
+              {/* <Image
                 src="/logo.png"
                 alt={siteConfig.name}
                 quality={100}
@@ -51,17 +48,19 @@ export function Header({ className }: HeaderProps) {
                 height={32}
                 priority
                 className="rounded-lg transition-opacity duration-300"
-              />
-              <span className="hidden font-medium sm:inline-block">{siteConfig.name}</span>
+              /> */}
+              <span className="inline-block font-bold text-lg text-primary tracking-tight transition-all duration-300 hover:scale-105 hover:text-primary/80">
+                {siteConfig.name}
+              </span>
             </Link>
           </div>
 
           <div className="flex items-center gap-6">
-            <Nav
+            {/* <Nav
               containerStyles="hidden items-center gap-6 md:flex"
               linkStyles="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               underlineStyles="absolute left-0 top-full h-[2px] w-full origin-left scale-x-0 bg-foreground transition-transform duration-200 group-hover:scale-x-100"
-            />
+            /> */}
 
             <div className="flex items-center gap-2">
               <UserNav />
