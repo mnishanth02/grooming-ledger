@@ -8,7 +8,7 @@ const TeamSetupPage = async () => {
 
   return (
     <>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<Loader fullScreen />}>
         <TeamCheck team={team} />
       </Suspense>
     </>

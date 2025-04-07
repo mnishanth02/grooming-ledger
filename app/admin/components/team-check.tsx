@@ -24,7 +24,7 @@ const TeamCheck = ({ team }: TeamCheckProps) => {
     }
   }, [isOpen, onOpen, team?.id, router]);
 
-  return <Loader />;
+  return <Loader fullScreen />;
 };
 
 export default TeamCheck;

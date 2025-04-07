@@ -31,7 +31,7 @@ const TeamLayout = async ({ children, params }: TeamLayoutProps) => {
 
   return (
     <SidebarProvider>
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<Loader className="h-screen" />}>
         <AppSidebar user={user} allTeams={allTeams} currentTeamId={teamId} />
       </Suspense>
       <SidebarInset>

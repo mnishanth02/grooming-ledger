@@ -1,6 +1,13 @@
-export default function Loader() {
+interface LoaderProps {
+  fullScreen?: boolean;
+  className?: string;
+}
+
+export default function Loader({ fullScreen = false, className = "" }: LoaderProps) {
   return (
-    <div className="flex grid h-screen w-screen animate-pulse items-center justify-center p-4 text-muted-foreground">
+    <div
+      className={`flex w-full animate-pulse items-center justify-center p-4 text-muted-foreground ${fullScreen ? "h-screen" : "h-full min-h-[200px]"} ${className}`}
+    >
       <div role="status">
         <svg
           aria-hidden="true"
