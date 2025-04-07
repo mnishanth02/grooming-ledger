@@ -12,8 +12,15 @@ interface DashboardPageProps {
   params: Promise<{ teamId: string }>;
 }
 
-// Loading fallback for dashboard sections
+// Loading fallbacks for dashboard sections
 const SectionSkeleton = () => <div className="h-40 w-full animate-pulse rounded-lg bg-muted" />;
+const StatsSkeleton = () => (
+  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
+    ))}
+  </div>
+);
 
 const TeamDashboardPage = async ({ params }: DashboardPageProps) => {
   const { teamId } = await params;
@@ -33,13 +40,7 @@ const TeamDashboardPage = async ({ params }: DashboardPageProps) => {
     <div className="flex flex-col gap-4 px-8">
       <DashboardHeader team={team} />
 
-      <Suspense
-        fallback={
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <SectionSkeleton />
-          </div>
-        }
-      >
+      <Suspense fallback={<StatsSkeleton />}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <DashboardStats candidates={candidates} />
         </div>

@@ -1,4 +1,3 @@
-import Loader from "@/components/common/loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -52,6 +51,18 @@ const CandidateProfilePage = async ({ params }: CandidateProfilePageProps) => {
       .replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
+  // Custom loading skeleton for candidate profile sections
+  const ProfileSectionSkeleton = () => (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="space-y-4">
+          <div className="h-40 animate-pulse rounded-lg bg-muted" />
+          <div className="h-40 animate-pulse rounded-lg bg-muted" />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
       <div className="flex items-center justify-between">
@@ -73,7 +84,7 @@ const CandidateProfilePage = async ({ params }: CandidateProfilePageProps) => {
 
       <Separator />
 
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<ProfileSectionSkeleton />}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* Left Column - Basic Information */}
           <div className="space-y-6">

@@ -25,7 +25,19 @@ const ReportsPage = async ({ params }: ReportsPageProps) => {
         </div>
       </div>
 
-      <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={
+          <div className="space-y-4">
+            <div className="h-10 w-1/4 animate-pulse rounded-lg bg-muted" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+              ))}
+            </div>
+            <div className="h-64 w-full animate-pulse rounded-lg bg-muted" />
+          </div>
+        }
+      >
         <ReportsClient candidates={candidates} teamId={teamId} />
       </Suspense>
     </div>

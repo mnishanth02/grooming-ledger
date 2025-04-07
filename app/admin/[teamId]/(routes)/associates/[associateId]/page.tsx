@@ -1,5 +1,7 @@
+import Loader from "@/components/common/loader";
 import { getAssociateById } from "@/data/data-access/user.queries";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import AssociateProfile from "./components/associate-profile";
 
 interface PageDetailsProps {
@@ -21,8 +23,10 @@ async function PageDetails({ params }: PageDetailsProps) {
 
   // The data from getAssociateById is already in the right format for the component
   return (
-    <div className="container space-y-4 ">
-      <AssociateProfile associate={associateData} teamId={teamId} />
+    <div className="container space-y-4">
+      <Suspense fallback={<Loader />}>
+        <AssociateProfile associate={associateData} teamId={teamId} />
+      </Suspense>
     </div>
   );
 }

@@ -27,7 +27,14 @@ async function SettingsPage({ params }: SettingsPageProps) {
     <div className="flex flex-col space-y-6 px-6 ">
       <PageHeading title="Settings" description="Manage your team settings and preferences" />
       <Separator />
-      <Suspense fallback={<div className="h-96 w-full animate-pulse rounded-lg bg-muted" />}>
+      <Suspense
+        fallback={
+          <div className="space-y-6">
+            <div className="h-12 w-1/3 animate-pulse rounded-lg bg-muted" />
+            <div className="h-96 w-full animate-pulse rounded-lg bg-muted" />
+          </div>
+        }
+      >
         <SettingsForm team={team} user={user} />
       </Suspense>
     </div>
